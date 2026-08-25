@@ -109,19 +109,11 @@
         <div class="p-4 sm:p-8 overflow-y-auto max-w-full mx-auto w-full h-full pb-24 relative">
 
             <section id="prioridades" class="section-content active">
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 border-l-4 border-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye text-gold mr-2"></i>Avaliação de Prioridades</h3>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            O sistema exibe todas as prioridades cadastradas no município. Utilize a busca textual e os filtros para refinar os dados, edite os critérios (1 a 5) e clique em salvar alterações para atualizar no Google Sheets.
-                        </p>
-                    </div>
-                    <div>
-                        <button onclick="salvarTodasAlteracoes()" id="btn-salvar-global" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-2 shadow-md hidden">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>Salvar Alterações</span>
-                        </button>
-                    </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 border-l-4 border-navy">
+                    <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye text-gold mr-2"></i>Avaliação de Prioridades</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        O sistema exibe todas as prioridades cadastradas no município. Utilize a busca textual e os filtros para refinar os dados, edite os critérios (1 a 5) e clique em salvar alterações para atualizar no Google Sheets.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -203,6 +195,20 @@
                         <button onclick="limparFiltros()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1">
                             <i class="fa-solid fa-rotate-left"></i>
                             <span>Limpar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de Ações / Botão Salvar (Posicionado entre o filtro e a tabela) -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center space-x-2">
+                        <i class="fa-solid fa-table-list text-navy"></i>
+                        <span>Tabela de Classificação de Prioridades</span>
+                    </div>
+                    <div>
+                        <button onclick="salvarTodasAlteracoes()" id="btn-salvar-global" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-2 shadow-md hidden">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Salvar Alterações Pendentes</span>
                         </button>
                     </div>
                 </div>
@@ -604,7 +610,7 @@
             } catch (err) {
                 mostrarToast("Falha na comunicação com a planilha.");
             } finally {
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações</span>';
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações Pendentes</span>';
                 btn.removeAttribute('disabled');
             }
         }
