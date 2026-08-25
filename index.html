@@ -236,7 +236,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyTtJM7NBLA-OfbhZ616X4qxDHTMS7nV8aq4bbjfCmAdo_usLqWnzsRxOWhIXvFrCqbpw/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxq-m86OKPmlogR3MDtldOky7u4p54ijnGJP18R1OQhQQtrDM2BgBF7_FXHgYWpgcbsRA/exec";
 
         let DADOS_SISTEMA = {
             usuarioLogado: null,
@@ -483,33 +483,49 @@
             btn.setAttribute('disabled', 'true');
 
             try {
+                console.log("Enviando pacote para o Google:", alteracoesPendentes);
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ usuario: DADOS_SISTEMA.usuarioLogado.nome, updates: alteracoesPendentes })
+                    redirect: 'follow', // Obriga o navegador a seguir os redirecionamentos do Google
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8' // Evita o bloqueio de CORS (preflight)
+                    },
+                    body: JSON.stringify({ 
+                        usuario: DADOS_SISTEMA.usuarioLogado.nome, 
+                        updates: alteracoesPendentes 
+                    })
                 });
                 
                 const result = await response.json();
+                console.log("Resposta da Planilha:", result);
                 
                 if (result.success) {
-                    for (let id in alteracoesPendentes) {
-                        const item = DADOS_SISTEMA.prioridades.find(p => (p.ID || p.id || '').toString() === id.toString());
-                        if (item) {
-                            for (let campo in alteracoesPendentes[id]) {
-                                const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
-                                item[chaveReal] = alteracoesPendentes[id][campo];
+                    if (result.totalAtualizado > 0) {
+                        for (let id in alteracoesPendentes) {
+                            const item = DADOS_SISTEMA.prioridades.find(p => (p.ID || p.id || '').toString() === id.toString());
+                            if (item) {
+                                for (let campo in alteracoesPendentes[id]) {
+                                    const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
+                                    item[chaveReal] = alteracoesPendentes[id][campo];
+                                }
                             }
                         }
+                        alteracoesPendentes = {};
+                        btn.classList.add('hidden');
+                        renderizarPrioridades();
+                        mostrarToast("Alterações salvas com sucesso no Google Sheets!");
+                    } else {
+                        mostrarToast("Alerta: Sem permissão ou linhas não atualizadas.");
+                        console.warn("Motivo da falha ao salvar:", result.logs);
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Tentar Novamente</span>';
                     }
-                    alteracoesPendentes = {};
-                    btn.classList.add('hidden');
-                    renderizarPrioridades();
-                    mostrarToast("Alterações salvas com sucesso no Google Sheets!");
                 } else {
                     mostrarToast("Erro ao salvar: " + (result.erro || "Problema no Servidor"));
                 }
             } catch (err) {
-                console.warn("Erro ao salvar:", err);
-                mostrarToast("Falha na comunicação com a planilha.");
+                console.error("Erro Crítico ao Salvar:", err);
+                mostrarToast("Falha na comunicação com a planilha. Verifique o console (F12).");
             } finally {
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações</span>';
                 btn.removeAttribute('disabled');
