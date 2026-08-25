@@ -52,50 +52,8 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-opacity-95">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-            <div class="bg-navy p-6 text-center text-white relative">
-                <div class="bg-white p-3 rounded-2xl mb-3 inline-block shadow-lg logo-container">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Bras%C3%A3o_de_Ol%C3%ADmpia%2C_SP.jpg" alt="Brasão de Olímpia" class="h-14 w-auto mx-auto" onerror="this.src='https://via.placeholder.com/64x64?text=Ol%C3%ADmpia'">
-                </div>
-                <h2 class="text-sm font-extrabold uppercase tracking-widest text-gold">Prefeitura da Estância Turística de Olímpia</h2>
-                <p class="text-xs text-blue-100 mt-1">Painel de Gestão de Prioridades</p>
-            </div>
-            
-            <form id="form-login" onsubmit="realizarLogin(event)" class="p-8 space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2"><i class="fa-solid fa-user text-navy mr-2"></i> Usuário ou E-mail</label>
-                    <input type="text" id="login-usuario" required placeholder="Seu nome ou e-mail cadastrado" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-medium focus:ring-2 focus:ring-gold focus:border-gold outline-none transition disabled:opacity-50">
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2"><i class="fa-solid fa-lock text-navy mr-2"></i> Senha</label>
-                    <div class="relative">
-                        <input type="password" id="login-senha" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 pr-10 text-xs font-medium focus:ring-2 focus:ring-gold focus:border-gold outline-none transition disabled:opacity-50">
-                        <button type="button" onclick="toggleSenha()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none">
-                            <i class="fa-solid fa-eye" id="senha-icon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="login-erro" class="text-rose-600 text-[11px] font-bold text-center bg-rose-50 p-2 rounded-lg border border-rose-200 hidden">
-                    Credenciais inválidas. Verifique seu usuário e senha.
-                </div>
-
-                <button id="btn-login" type="submit" disabled class="w-full bg-navy text-gold py-3.5 rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-lg transition flex items-center justify-center space-x-2 opacity-50 cursor-not-allowed">
-                    <i class="fa-solid fa-spinner fa-spin" id="login-spinner"></i>
-                    <span id="login-text">Conectando ao banco de dados...</span>
-                </button>
-            </form>
-            <div class="bg-slate-50 p-4 text-center border-t border-slate-200 text-[10px] text-slate-500">
-                Acesso restrito a servidores autorizados. <span id="db-status-text" class="font-bold text-amber-600">Sincronizando...</span>
-            </div>
-        </div>
-    </div>
-
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl hidden">
+    <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl">
         <div class="p-5 text-center border-b border-blue-900 flex-shrink-0">
             <div class="bg-white p-2 rounded-xl mb-2 inline-block logo-container shadow-md">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Bras%C3%A3o_de_Ol%C3%ADmpia%2C_SP.jpg" alt="Brasão de Olímpia" class="h-12 w-auto mx-auto" onerror="this.src='https://via.placeholder.com/64x64?text=Ol%C3%ADmpia'">
@@ -114,19 +72,14 @@
             </a>
         </nav>
 
-        <div class="p-4 bg-blue-950 text-[10px] text-blue-300 mt-auto border-t border-blue-900 footer-text flex-shrink-0 flex items-center justify-between">
-            <div>
-                <p class="font-bold text-white" id="sidebar-user-name">Usuário</p>
-                <p class="text-blue-300 truncate" id="sidebar-user-email">email@olimpia.sp.gov.br</p>
-            </div>
-            <button onclick="realizarLogout()" class="text-gold hover:text-white p-2" title="Sair do Sistema">
-                <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
+        <div class="p-4 bg-blue-950 text-[10px] text-blue-300 mt-auto border-t border-blue-900 footer-text flex-shrink-0 text-center">
+            <p class="font-bold text-white">Prefeitura de Olímpia - SP</p>
+            <p class="text-blue-300">Acesso Público Geral</p>
         </div>
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main id="main-content" class="flex-grow flex flex-col min-w-0 h-full overflow-hidden bg-slate-50 hidden">
+    <main id="main-content" class="flex-grow flex flex-col min-w-0 h-full overflow-hidden bg-slate-50">
         <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sm:px-8 shadow-sm flex-shrink-0">
             <div class="flex items-center space-x-4">
                 <button onclick="toggleSidebar()" class="text-navy hover:text-blue-700 transition p-1.5 rounded-lg hover:bg-slate-100" title="Recolher / Expandir Menu">
@@ -135,7 +88,7 @@
                 <div>
                     <h1 id="page-title" class="text-base sm:text-lg font-bold text-navy uppercase tracking-tight leading-tight">Painel de Gestão de Prioridades</h1>
                     <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-widest hidden md:block">
-                        Município de Olímpia - SP | Responsável: <span id="header-user-area" class="text-navy font-black">-</span>
+                        Município de Olímpia - SP | Visão Geral Pública
                     </p>
                 </div>
             </div>
@@ -145,7 +98,7 @@
                     <i class="fa-solid fa-rotate" id="sync-icon"></i>
                     <span class="hidden sm:inline">Sincronizar</span>
                 </button>
-                <div class="h-9 w-9 rounded-full bg-navy text-gold flex items-center justify-center font-extrabold text-xs shadow-md border-2 border-gold" title="Usuário Autenticado" id="user-avatar">US</div>
+                <div class="h-9 w-9 rounded-full bg-navy text-gold flex items-center justify-center font-extrabold text-xs shadow-md border-2 border-gold" title="Painel Geral" id="user-avatar">PMO</div>
             </div>
         </header>
 
@@ -157,13 +110,36 @@
                     <div>
                         <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye text-gold mr-2"></i>Avaliação de Prioridades</h3>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Servidor(a) <b id="info-usuario-logado">Usuário</b>. O sistema exibe apenas as prioridades vinculadas ao seu nome na coluna <b>Responsável da Área</b>. Edite os critérios (1 a 5) diretamente na tabela e clique em salvar.
+                            O sistema exibe todas as prioridades cadastradas no município. Utilize os filtros abaixo para refinar por Secretaria ou Processo, edite os critérios (1 a 5) e clique em salvar alterações.
                         </p>
                     </div>
                     <div>
                         <button onclick="salvarTodasAlteracoes()" id="btn-salvar-global" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-2 shadow-md hidden">
                             <i class="fa-solid fa-floppy-disk"></i>
                             <span>Salvar Alterações</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4 flex flex-wrap items-center gap-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-700 uppercase"><i class="fa-solid fa-filter text-navy mr-1"></i> Filtros:</span>
+                    </div>
+                    <div class="flex-1 min-w-[220px]">
+                        <select id="filtro-secretaria" onchange="renderizarPrioridades()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
+                            <option value="">Todas as Secretarias</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[220px]">
+                        <select id="filtro-processo" onchange="renderizarPrioridades()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
+                            <option value="">Todos os Processos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="limparFiltros()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Limpar Filtros</span>
                         </button>
                     </div>
                 </div>
@@ -236,10 +212,9 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxq-m86OKPmlogR3MDtldOky7u4p54ijnGJP18R1OQhQQtrDM2BgBF7_FXHgYWpgcbsRA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbykkQPVJbAZu5Q8OZQUoxQdm5edVxI4HL6AV8IuXtyP2kgwTedmhhDrjC97en8I46l-5w/exec";
 
         let DADOS_SISTEMA = {
-            usuarioLogado: null,
             prioridades: [],
             diagnostico: [],
             usuarios: []
@@ -249,18 +224,6 @@
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
-        }
-
-        function toggleSenha() {
-            const input = document.getElementById('login-senha');
-            const icon = document.getElementById('senha-icon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye';
-            }
         }
 
         function mostrarToast(mensagem) {
@@ -298,121 +261,59 @@
                 if (result.diagnostico) DADOS_SISTEMA.diagnostico = result.diagnostico;
                 if (result.usuarios && result.usuarios.length > 0) DADOS_SISTEMA.usuarios = result.usuarios;
 
-                const btnLogin = document.getElementById('btn-login');
-                if(btnLogin) {
-                    btnLogin.removeAttribute('disabled');
-                    btnLogin.classList.remove('opacity-50', 'cursor-not-allowed');
-                    btnLogin.classList.add('hover:bg-blue-900', 'active:scale-95');
-                    document.getElementById('login-spinner').className = 'fa-solid fa-right-to-bracket';
-                    document.getElementById('login-text').innerText = 'Entrar no Sistema';
-                    document.getElementById('db-status-text').innerText = 'Banco de dados sincronizado.';
-                    document.getElementById('db-status-text').className = 'font-bold text-emerald-600';
-                }
-
-                if(DADOS_SISTEMA.usuarioLogado) {
-                    processarInterfacePosLogin();
-                }
+                popularFiltros();
+                renderizarPrioridades();
+                renderizarDiagnostico();
+                mostrarToast("Dados sincronizados com sucesso!");
 
             } catch (error) {
                 console.warn("Aviso de Conexão:", error);
                 mostrarToast("Erro ao conectar com a planilha. Verifique o link e permissões.");
-                
-                document.getElementById('login-text').innerText = 'Entrar (Modo Offline/Teste)';
-                const btnLogin = document.getElementById('btn-login');
-                btnLogin.removeAttribute('disabled');
-                btnLogin.classList.remove('opacity-50', 'cursor-not-allowed');
-                document.getElementById('login-spinner').className = 'fa-solid fa-right-to-bracket';
-                document.getElementById('db-status-text').innerText = 'Erro na API. Verifique o link.';
             } finally {
                 if (syncIcon) syncIcon.classList.remove('fa-spin');
             }
         }
 
-        function obterValorFlexivel(obj, possíveisNomes) {
-            const chaves = Object.keys(obj);
-            for (let nome of possíveisNomes) {
-                const norm = nome.toLowerCase().trim();
-                for (let chave of chaves) {
-                    if (chave.toLowerCase().trim() === norm) {
-                        return obj[chave];
-                    }
-                }
-            }
-            return undefined;
+        function popularFiltros() {
+            const selectSec = document.getElementById('filtro-secretaria');
+            const selectProc = document.getElementById('filtro-processo');
+            if (!selectSec || !selectProc) return;
+
+            const secAtual = selectSec.value;
+            const procAtual = selectProc.value;
+
+            const secretarias = [...new Set(DADOS_SISTEMA.prioridades.map(p => (p.Secretaria || p.secretaria || '').toString().trim()).filter(Boolean))].sort();
+            const processos = [...new Set(DADOS_SISTEMA.prioridades.map(p => (p.Processo || p.processo || '').toString().trim()).filter(Boolean))].sort();
+
+            selectSec.innerHTML = '<option value="">Todas as Secretarias</option>' + secretarias.map(s => `<option value="${s}" ${s === secAtual ? 'selected' : ''}>${s}</option>`).join('');
+            selectProc.innerHTML = '<option value="">Todos os Processos</option>' + processos.map(p => `<option value="${p}" ${p === procAtual ? 'selected' : ''}>${p}</option>`).join('');
         }
 
-        function realizarLogin(event) {
-            event.preventDefault();
-            const userInput = document.getElementById('login-usuario').value.trim().toLowerCase();
-            const passInput = document.getElementById('login-senha').value.trim();
-            const erroDiv = document.getElementById('login-erro');
-
-            const usuarioEncontrado = DADOS_SISTEMA.usuarios.find(u => {
-                const nomeU = (obterValorFlexivel(u, ["nome", "name"]) || "").toString().trim().toLowerCase();
-                const emailU = (obterValorFlexivel(u, ["usuário", "usuario", "e-mail", "email", "login"]) || "").toString().trim().toLowerCase();
-                const senhaU = (obterValorFlexivel(u, ["senha", "password", "pass"]) || "").toString().trim();
-                
-                const matchUser = (nomeU === userInput || emailU === userInput);
-                const matchPass = (senhaU === passInput);
-                return matchUser && matchPass;
-            });
-
-            if (usuarioEncontrado) {
-                const nomeOriginal = obterValorFlexivel(usuarioEncontrado, ["nome", "name"]) || "Usuário";
-                const partesNome = nomeOriginal.split(" ");
-                const siglaCalc = partesNome.length > 1 ? (partesNome[0][0] + partesNome[1][0]).toUpperCase() : nomeOriginal.substring(0,2).toUpperCase();
-
-                DADOS_SISTEMA.usuarioLogado = {
-                    nome: nomeOriginal,
-                    usuario: obterValorFlexivel(usuarioEncontrado, ["usuário", "usuario", "e-mail", "email"]) || "email@olimpia.sp.gov.br",
-                    sigla: siglaCalc
-                };
-
-                sessionStorage.setItem("usuarioOlímpia", JSON.stringify(DADOS_SISTEMA.usuarioLogado));
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('sidebar').classList.remove('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                
-                processarInterfacePosLogin();
-                mostrarToast("Bem-vindo, " + DADOS_SISTEMA.usuarioLogado.nome + "!");
-            } else {
-                erroDiv.classList.remove('hidden');
-                const btn = document.getElementById('btn-login');
-                btn.classList.add('animate-bounce', 'bg-rose-600');
-                setTimeout(() => btn.classList.remove('animate-bounce', 'bg-rose-600'), 500);
-            }
-        }
-
-        function realizarLogout() {
-            sessionStorage.removeItem("usuarioOlímpia");
-            window.location.reload();
-        }
-
-        function processarInterfacePosLogin() {
-            const user = DADOS_SISTEMA.usuarioLogado;
-            if (!user) return;
-
-            document.getElementById('sidebar-user-name').innerText = user.nome;
-            document.getElementById('sidebar-user-email').innerText = user.usuario;
-            document.getElementById('header-user-area').innerText = user.nome;
-            document.getElementById('user-avatar').innerText = user.sigla;
-            document.getElementById('info-usuario-logado').innerText = user.nome;
-
+        function limparFiltros() {
+            const selectSec = document.getElementById('filtro-secretaria');
+            const selectProc = document.getElementById('filtro-processo');
+            if (selectSec) selectSec.value = '';
+            if (selectProc) selectProc.value = '';
             renderizarPrioridades();
-            renderizarDiagnostico();
         }
 
         function renderizarPrioridades() {
             const tbody = document.getElementById('tbody-prioridades');
-            const user = DADOS_SISTEMA.usuarioLogado;
+            const filtroSec = (document.getElementById('filtro-secretaria')?.value || '').toLowerCase();
+            const filtroProc = (document.getElementById('filtro-processo')?.value || '').toLowerCase();
 
-            const lista = DADOS_SISTEMA.prioridades.filter(p => {
-                const resp = (p["Responsável da Área"] || p["Responsavel da Area"] || "").toString().trim();
-                return resp.toLowerCase() === user.nome.toLowerCase();
+            let lista = DADOS_SISTEMA.prioridades.filter(p => {
+                const secretaria = (p.Secretaria || p.secretaria || '').toString().toLowerCase();
+                const processo = (p.Processo || p.processo || '').toString().toLowerCase();
+
+                const matchSec = !filtroSec || secretaria === filtroSec;
+                const matchProc = !filtroProc || processo === filtroProc;
+
+                return matchSec && matchProc;
             });
 
             if (!lista.length) {
-                tbody.innerHTML = '<tr><td colspan="15" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade atribuída ao seu nome ("' + user.nome + '") na coluna Responsável da Área.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade encontrada com os filtros selecionados.</td></tr>';
                 return;
             }
 
@@ -429,7 +330,6 @@
                 const processo = item.Processo || item.processo || '-';
                 const secretaria = item.Secretaria || item.secretaria || '-';
                 const divisao = item.Divisão || item.Divisao || item.divisao || '-';
-                const responsavel = item["Responsável da Área"] || item["Responsavel da Area"] || '-';
                 const indice = item["Índice de Priorização"] || item["Indice de Priorizacao"] || '-';
                 const ciclo = item["Ciclo de Implantação"] || item["Ciclo de Implantacao"] || '-';
 
@@ -483,22 +383,19 @@
             btn.setAttribute('disabled', 'true');
 
             try {
-                console.log("Enviando pacote para o Google:", alteracoesPendentes);
-
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    redirect: 'follow', // Obriga o navegador a seguir os redirecionamentos do Google
+                    redirect: 'follow',
                     headers: {
-                        'Content-Type': 'text/plain;charset=utf-8' // Evita o bloqueio de CORS (preflight)
+                        'Content-Type': 'text/plain;charset=utf-8'
                     },
                     body: JSON.stringify({ 
-                        usuario: DADOS_SISTEMA.usuarioLogado.nome, 
+                        usuario: "Painel Geral", 
                         updates: alteracoesPendentes 
                     })
                 });
                 
                 const result = await response.json();
-                console.log("Resposta da Planilha:", result);
                 
                 if (result.success) {
                     if (result.totalAtualizado > 0) {
@@ -517,7 +414,6 @@
                         mostrarToast("Alterações salvas com sucesso no Google Sheets!");
                     } else {
                         mostrarToast("Alerta: Sem permissão ou linhas não atualizadas.");
-                        console.warn("Motivo da falha ao salvar:", result.logs);
                         btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Tentar Novamente</span>';
                     }
                 } else {
@@ -525,25 +421,60 @@
                 }
             } catch (err) {
                 console.error("Erro Crítico ao Salvar:", err);
-                mostrarToast("Falha na comunicação com a planilha. Verifique o console (F12).");
+                mostrarToast("Falha na comunicação com a planilha.");
             } finally {
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações</span>';
                 btn.removeAttribute('disabled');
             }
         }
 
+        function normalizarString(str) {
+            if (!str) return "";
+            // Remove acentos, espaços e converte para minúsculo
+            return str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, '');
+        }
+
+        function obterValorFlexivel(obj, palavrasChave) {
+            const chaves = Object.keys(obj);
+            for (let chave of chaves) {
+                const chaveNorm = normalizarString(chave);
+                for (let palavra of palavrasChave) {
+                    const palavraNorm = normalizarString(palavra);
+                    if (chaveNorm.includes(palavraNorm)) {
+                        return obj[chave];
+                    }
+                }
+            }
+            return undefined;
+        }
+
         function renderizarDiagnostico() {
             const tbody = document.getElementById('tbody-diagnostico');
             const lista = DADOS_SISTEMA.diagnostico;
 
-            if (!lista.length) {
+            if (!lista || !lista.length) {
                 tbody.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico encontrado na planilha.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = lista.map(item => {
-                const diag = item["Diagnóstico Atual"] || item["Diagnostico Atual"] || '-';
-                const sugestao = item["Sugestão de Melhoria"] || item["Sugestao de Melhoria"] || '-';
+                // Tenta puxar buscando palavras chave no cabeçalho
+                let diag = obterValorFlexivel(item, ["diagnostico", "diagnótico", "atual", "problema"]);
+                let sugestao = obterValorFlexivel(item, ["sugestao", "melhoria", "solucao", "acao"]);
+                
+                // Se não achar nada pelo nome da coluna, força bruta lendo pelos índices dos valores (1ª e 2ª coluna dos dados)
+                if (!diag) {
+                    const valores = Object.values(item);
+                    diag = valores.length > 0 ? valores[0] : '-';
+                }
+                if (!sugestao) {
+                    const valores = Object.values(item);
+                    sugestao = valores.length > 1 ? valores[1] : '-';
+                }
+
+                // Evitar "undefined" visual
+                diag = diag || '-';
+                sugestao = sugestao || '-';
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
@@ -555,13 +486,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const sessaoSalva = sessionStorage.getItem("usuarioOlímpia");
-            if (sessaoSalva) {
-                DADOS_SISTEMA.usuarioLogado = JSON.parse(sessaoSalva);
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('sidebar').classList.remove('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-            }
             await carregarDadosPlanilha();
         });
     </script>
