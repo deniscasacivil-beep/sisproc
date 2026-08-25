@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Gestão de Prioridades - Olímpia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .sidebar { background-color: #003366; transition: all 0.3s ease-in-out; }
+        .sidebar.collapsed { width: 4.5rem; }
+        .sidebar.collapsed .sidebar-text,
+        .sidebar.collapsed .logo-container,
+        .sidebar.collapsed h2,
+        .sidebar.collapsed .footer-text { display: none; }
+        .card { background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
+        .nav-link { transition: all 0.2s ease; border-radius: 8px; }
+        .nav-link.active { background-color: #ffb800; color: #003366 !important; font-weight: 700; }
+        .text-navy { color: #003366; }
+        .bg-navy { background-color: #003366; }
+        .text-gold { color: #ffb800; }
+        .bg-gold { background-color: #ffb800; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .criterio-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.25rem center;
+            background-size: 1em;
+            padding-right: 1.5rem;
+        }
+        #toast {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateY(20px);
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-opacity-95">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="bg-navy p-6 text-center text-white relative">
+                <div class="bg-white p-3 rounded-2xl mb-3 inline-block shadow-lg logo-container">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Bras%C3%A3o_de_Ol%C3%ADmpia%2C_SP.jpg" alt="Brasão de Olímpia" class="h-14 w-auto mx-auto" onerror="this.src='https://via.placeholder.com/64x64?text=Ol%C3%ADmpia'">
+                </div>
+                <h2 class="text-sm font-extrabold uppercase tracking-widest text-gold">Prefeitura da Estância Turística de Olímpia</h2>
+                <p class="text-xs text-blue-100 mt-1">Painel de Gestão de Prioridades</p>
+            </div>
+            
+            <form id="form-login" onsubmit="realizarLogin(event)" class="p-8 space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2"><i class="fa-solid fa-user text-navy mr-2"></i> Usuário ou E-mail</label>
+                    <input type="text" id="login-usuario" required placeholder="Seu nome ou e-mail cadastrado" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-medium focus:ring-2 focus:ring-gold focus:border-gold outline-none transition disabled:opacity-50">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2"><i class="fa-solid fa-lock text-navy mr-2"></i> Senha</label>
+                    <div class="relative">
+                        <input type="password" id="login-senha" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 pr-10 text-xs font-medium focus:ring-2 focus:ring-gold focus:border-gold outline-none transition disabled:opacity-50">
+                        <button type="button" onclick="toggleSenha()" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none">
+                            <i class="fa-solid fa-eye" id="senha-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="login-erro" class="text-rose-600 text-[11px] font-bold text-center bg-rose-50 p-2 rounded-lg border border-rose-200 hidden">
+                    Credenciais inválidas. Verifique seu usuário e senha.
+                </div>
+
+                <button id="btn-login" type="submit" disabled class="w-full bg-navy text-gold py-3.5 rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-lg transition flex items-center justify-center space-x-2 opacity-50 cursor-not-allowed">
+                    <i class="fa-solid fa-spinner fa-spin" id="login-spinner"></i>
+                    <span id="login-text">Conectando ao banco de dados...</span>
+                </button>
+            </form>
+            <div class="bg-slate-50 p-4 text-center border-t border-slate-200 text-[10px] text-slate-500">
+                Acesso restrito a servidores autorizados. <span id="db-status-text" class="font-bold text-amber-600">Sincronizando...</span>
+            </div>
+        </div>
+    </div>
+
+    <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl hidden">
+        <div class="p-5 text-center border-b border-blue-900 flex-shrink-0">
+            <div class="bg-white p-2 rounded-xl mb-2 inline-block logo-container shadow-md">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Bras%C3%A3o_de_Ol%C3%ADmpia%2C_SP.jpg" alt="Brasão de Olímpia" class="h-12 w-auto mx-auto" onerror="this.src='https://via.placeholder.com/64x64?text=Ol%C3%ADmpia'">
+            </div>
+            <h2 class="text-[10px] font-extrabold tracking-widest uppercase text-blue-100 leading-tight px-1">Gestão de Prioridades & Estratégia</h2>
+        </div>
+        
+        <nav class="flex-grow p-3 space-y-1 mt-1 overflow-y-auto">
+            <a href="#" class="nav-link active flex items-center space-x-3 p-3 text-blue-100 bg-gold text-navy font-bold" title="Gestão de Prioridades">
+                <i class="fa-solid fa-bullseye w-5 text-center flex-shrink-0"></i>
+                <span class="text-xs font-semibold sidebar-text">Gestão de Prioridades</span>
+            </a>
+        </nav>
+
+        <div class="p-4 bg-blue-950 text-[10px] text-blue-300 mt-auto border-t border-blue-900 footer-text flex-shrink-0 flex items-center justify-between">
+            <div>
+                <p class="font-bold text-white" id="sidebar-user-name">Usuário</p>
+                <p class="text-blue-300 truncate" id="sidebar-user-email">email@olimpia.sp.gov.br</p>
+            </div>
+            <button onclick="realizarLogout()" class="text-gold hover:text-white p-2" title="Sair do Sistema">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </aside>
+
+    <main id="main-content" class="flex-grow flex flex-col min-w-0 h-full overflow-hidden bg-slate-50 hidden">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sm:px-8 shadow-sm flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleSidebar()" class="text-navy hover:text-blue-700 transition p-1.5 rounded-lg hover:bg-slate-100" title="Recolher / Expandir Menu">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <div>
+                    <h1 id="page-title" class="text-base sm:text-lg font-bold text-navy uppercase tracking-tight leading-tight">Painel de Gestão de Prioridades</h1>
+                    <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-widest hidden md:block">
+                        Município de Olímpia - SP | Área: <span id="header-user-area" class="text-navy font-black">-</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="carregarDadosPlanilha()" class="bg-blue-50 text-navy hover:bg-blue-100 px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-2 border border-blue-200 shadow-sm" title="Sincronizar com o Google Sheets">
+                    <i class="fa-solid fa-rotate" id="sync-icon"></i>
+                    <span class="hidden sm:inline">Sincronizar</span>
+                </button>
+                <div class="h-9 w-9 rounded-full bg-navy text-gold flex items-center justify-center font-extrabold text-xs shadow-md border-2 border-gold" title="Usuário Autenticado" id="user-avatar">US</div>
+            </div>
+        </header>
+
+        <div class="p-4 sm:p-8 overflow-y-auto max-w-7xl mx-auto w-full h-full pb-24 relative">
+
+            <section id="prioridades" class="section-content active">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 border-l-4 border-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye text-gold mr-2"></i>Avaliação de Prioridades (Critérios 1 a 5)</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Servidor(a) <b id="info-usuario-logado">Usuário</b>. O sistema exibe e permite avaliar apenas as prioridades vinculadas ao seu nome na coluna <b>Responsável da Área</b>.
+                        </p>
+                    </div>
+                    <button id="btn-salvar-prioridades" onclick="salvarPrioridades()" disabled class="bg-emerald-600 text-white hover:bg-emerald-700 px-4 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-2 shadow-md opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Salvar Alterações</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
+                    <div class="card p-5 border-l-8 border-navy flex flex-col justify-between">
+                        <div>
+                            <p class="text-navy text-[11px] font-black uppercase tracking-wider mb-1">Suas Prioridades</p>
+                            <h3 class="text-3xl font-extrabold text-navy" id="kpi-minhas-prioridades">0</h3>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-3 font-medium">Atribuídas sob sua responsabilidade</p>
+                    </div>
+                    <div class="card p-5 border-l-8 border-amber-500 flex flex-col justify-between">
+                        <div>
+                            <p class="text-slate-700 text-[11px] font-black uppercase tracking-wider mb-1">Média de Priorização</p>
+                            <h3 class="text-3xl font-extrabold text-amber-600" id="kpi-media-priorizacao">0.0</h3>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-3 font-medium">Índice Geral Calculado</p>
+                    </div>
+                    <div class="card p-5 border-l-8 border-emerald-500 flex flex-col justify-between">
+                        <div>
+                            <p class="text-slate-700 text-[11px] font-black uppercase tracking-wider mb-1">Alterações Pendentes</p>
+                            <h3 class="text-3xl font-extrabold text-emerald-600" id="kpi-alteracoes-pendentes">0</h3>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-3 font-medium">Aguardando salvamento</p>
+                    </div>
+                </div>
+
+                <div class="card p-0 overflow-hidden border-t-8 border-navy">
+                    <div class="overflow-x-auto bg-white">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3.5 font-bold sticky left-0 bg-slate-100 z-10 border-r border-slate-200">ID / Processo</th>
+                                    <th class="p-3.5 font-bold">Secretaria / Área</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50 border-l border-blue-100">Impacto Cidadão</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50">Risco Atual</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50">Volume Exec.</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50">Custo Op.</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50">Impacto Int.</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50">Viab. 90d</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50">Gov. Dep.</th>
+                                    <th class="p-3.5 font-bold text-center bg-blue-50 border-x border-blue-100">Índice Prior.</th>
+                                    <th class="p-3.5 font-bold text-center">Ciclo</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-800 font-medium divide-y divide-slate-100" id="tbody-prioridades">
+                                <tr><td colspan="11" class="p-8 text-center text-slate-400 italic">Carregando prioridades...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-6 right-6 flex items-center w-full max-w-xs p-4 space-x-3 text-slate-700 bg-white rounded-xl shadow-2xl border-l-4 border-emerald-500 z-50">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-emerald-500 bg-emerald-100 rounded-lg">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="ml-3 text-sm font-bold" id="toast-message">Operação realizada com sucesso!</div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyTtJM7NBLA-OfbhZ616X4qxDHTMS7nV8aq4bbjfCmAdo_usLqWnzsRxOWhIXvFrCqbpw/exec";
+
+        let DADOS_SISTEMA = {
+            usuarioLogado: null,
+            prioridades: [],
+            usuarios: []
+        };
+
+        let alteracoesPendentes = {};
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        function toggleSenha() {
+            const input = document.getElementById('login-senha');
+            const icon = document.getElementById('senha-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            if (mensagem) document.getElementById('toast-message').innerText = mensagem;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        async function carregarDadosPlanilha() {
+            const syncIcon = document.getElementById('sync-icon');
+            if (syncIcon) syncIcon.classList.add('fa-spin');
+
+            try {
+                const response = await fetch(API_URL, { redirect: "follow" });
+                if (!response.ok) throw new Error("Erro HTTP: " + response.status);
+                const result = await response.json();
+                
+                if (result.prioridades) DADOS_SISTEMA.prioridades = result.prioridades;
+                if (result.usuarios && result.usuarios.length > 0) DADOS_SISTEMA.usuarios = result.usuarios;
+
+                const btnLogin = document.getElementById('btn-login');
+                if(btnLogin) {
+                    btnLogin.removeAttribute('disabled');
+                    btnLogin.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnLogin.classList.add('hover:bg-blue-900', 'active:scale-95');
+                    document.getElementById('login-spinner').className = 'fa-solid fa-right-to-bracket';
+                    document.getElementById('login-text').innerText = 'Entrar no Sistema';
+                    document.getElementById('db-status-text').innerText = 'Banco de dados sincronizado.';
+                    document.getElementById('db-status-text').className = 'font-bold text-emerald-600';
+                }
+
+                if(DADOS_SISTEMA.usuarioLogado) {
+                    processarInterfacePosLogin();
+                }
+
+            } catch (error) {
+                console.warn("Aviso de Conexão:", error);
+                mostrarToast("Erro ao conectar com a planilha. Verifique as permissões do Apps Script.");
+                
+                document.getElementById('login-text').innerText = 'Entrar (Modo Offline/Teste)';
+                const btnLogin = document.getElementById('btn-login');
+                btnLogin.removeAttribute('disabled');
+                btnLogin.classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('login-spinner').className = 'fa-solid fa-right-to-bracket';
+                document.getElementById('db-status-text').innerText = 'Erro na API. Verifique o link.';
+            } finally {
+                if (syncIcon) syncIcon.classList.remove('fa-spin');
+            }
+        }
+
+        function obterValorFlexivel(obj, possíveisNomes) {
+            const chaves = Object.keys(obj);
+            for (let nome of possíveisNomes) {
+                const norm = nome.toLowerCase().trim();
+                for (let chave of chaves) {
+                    if (chave.toLowerCase().trim() === norm) {
+                        return obj[chave];
+                    }
+                }
+            }
+            return undefined;
+        }
+
+        function realizarLogin(event) {
+            event.preventDefault();
+            const userInput = document.getElementById('login-usuario').value.trim().toLowerCase();
+            const passInput = document.getElementById('login-senha').value.trim();
+            const erroDiv = document.getElementById('login-erro');
+
+            const usuarioEncontrado = DADOS_SISTEMA.usuarios.find(u => {
+                const nomeU = (obterValorFlexivel(u, ["nome", "name"]) || "").toString().trim().toLowerCase();
+                const emailU = (obterValorFlexivel(u, ["usuário", "usuario", "e-mail", "email", "login"]) || "").toString().trim().toLowerCase();
+                const senhaU = (obterValorFlexivel(u, ["senha", "password", "pass"]) || "").toString().trim();
+                
+                const matchUser = (nomeU === userInput || emailU === userInput);
+                const matchPass = (senhaU === passInput);
+                return matchUser && matchPass;
+            });
+
+            if (usuarioEncontrado) {
+                const nomeOriginal = obterValorFlexivel(usuarioEncontrado, ["nome", "name"]) || "Usuário";
+                const partesNome = nomeOriginal.split(" ");
+                const siglaCalc = partesNome.length > 1 ? (partesNome[0][0] + partesNome[1][0]).toUpperCase() : nomeOriginal.substring(0,2).toUpperCase();
+
+                DADOS_SISTEMA.usuarioLogado = {
+                    nome: nomeOriginal,
+                    usuario: obterValorFlexivel(usuarioEncontrado, ["usuário", "usuario", "e-mail", "email"]) || "email@olimpia.sp.gov.br",
+                    sigla: siglaCalc
+                };
+
+                sessionStorage.setItem("usuarioOlímpia", JSON.stringify(DADOS_SISTEMA.usuarioLogado));
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('sidebar').classList.remove('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                
+                processarInterfacePosLogin();
+                mostrarToast("Bem-vindo, " + DADOS_SISTEMA.usuarioLogado.nome + "!");
+            } else {
+                erroDiv.classList.remove('hidden');
+                const btn = document.getElementById('btn-login');
+                btn.classList.add('animate-bounce', 'bg-rose-600');
+                setTimeout(() => btn.classList.remove('animate-bounce', 'bg-rose-600'), 500);
+            }
+        }
+
+        function realizarLogout() {
+            sessionStorage.removeItem("usuarioOlímpia");
+            window.location.reload();
+        }
+
+        function processarInterfacePosLogin() {
+            const user = DADOS_SISTEMA.usuarioLogado;
+            if (!user) return;
+
+            document.getElementById('sidebar-user-name').innerText = user.nome;
+            document.getElementById('sidebar-user-email').innerText = user.usuario;
+            document.getElementById('header-user-area').innerText = user.nome;
+            document.getElementById('user-avatar').innerText = user.sigla;
+            document.getElementById('info-usuario-logado').innerText = user.nome;
+
+            renderizarPrioridades();
+        }
+
+        function gerarSelectCriterio(idPr, campo, valorAtual) {
+            const opcoes = [1, 2, 3, 4, 5];
+            let html = `<select onchange="registrarEdicaoPrioridade('${idPr}', '${campo}', this.value)" 
+                                class="criterio-select w-full bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded p-1.5 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
+                            <option value="" ${!valorAtual ? 'selected' : ''} disabled>-</option>`;
+            opcoes.forEach(op => {
+                html += `<option value="${op}" ${valorAtual == op ? 'selected' : ''}>${op}</option>`;
+            });
+            html += `</select>`;
+            return html;
+        }
+
+        function renderizarPrioridades() {
+            const tbody = document.getElementById('tbody-prioridades');
+            const user = DADOS_SISTEMA.usuarioLogado;
+
+            const lista = DADOS_SISTEMA.prioridades.filter(p => {
+                const resp = (p["Responsável da Área"] || p["Responsavel da Area"] || "").toString().trim();
+                return resp.toLowerCase() === user.nome.toLowerCase();
+            });
+
+            // Atualiza KPIs
+            document.getElementById('kpi-minhas-prioridades').innerText = lista.length;
+            
+            let somaIndice = 0;
+            lista.forEach(item => {
+                somaIndice += Number(item["Índice de Priorização"] || item["Indice de Priorizacao"] || 0);
+            });
+            const media = lista.length > 0 ? (somaIndice / lista.length).toFixed(1) : "0.0";
+            document.getElementById('kpi-media-priorizacao').innerText = media;
+            
+            const totalPendentes = Object.keys(alteracoesPendentes).length;
+            document.getElementById('kpi-alteracoes-pendentes').innerText = totalPendentes;
+
+            if (!lista.length) {
+                tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade atribuída ao seu nome ("' + user.nome + '") na coluna Responsável da Área.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lista.map(item => {
+                const id = item.ID || item.id || '';
+                return `
+                    <tr class="hover:bg-blue-50/50 transition">
+                        <td class="p-3.5 sticky left-0 bg-white z-10 border-r border-slate-100">
+                            <div class="text-navy font-black text-[11px]">#${id}</div>
+                            <div class="text-slate-700 font-semibold truncate max-w-[180px]" title="${item.Processo || ''}">${item.Processo || '-'}</div>
+                        </td>
+                        <td class="p-3.5">
+                            <div class="text-slate-800 font-bold">${item.Secretaria || '-'}</div>
+                            <div class="text-[10px] text-slate-500 uppercase">${item.Divisão || item.Divisao || '-'}</div>
+                        </td>
+                        <td class="p-2 bg-blue-50/30 border-l border-blue-100">${gerarSelectCriterio(id, 'Impacto no Cidadão', item["Impacto no Cidadão"] || item["Impacto no Cidadao"])}</td>
+                        <td class="p-2 bg-blue-50/30">${gerarSelectCriterio(id, 'Risco Atual', item["Risco Atual"])}</td>
+                        <td class="p-2 bg-blue-50/30">${gerarSelectCriterio(id, 'Volume de Execução', item["Volume de Execução"] || item["Volume de Execucao"])}</td>
+                        <td class="p-2 bg-blue-50/30">${gerarSelectCriterio(id, 'Custo Operacional', item["Custo Operacional"])}</td>
+                        <td class="p-2 bg-blue-50/30">${gerarSelectCriterio(id, 'Impacto Interno', item["Impacto Interno"])}</td>
+                        <td class="p-2 bg-blue-50/30">${gerarSelectCriterio(id, 'Viabilidade em 90 dias', item["Viabilidade em 90 dias"])}</td>
+                        <td class="p-2 bg-blue-50/30">${gerarSelectCriterio(id, 'Governabilidade e Dependências', item["Governabilidade e Dependências"] || item["Governabilidade e Dependencias"])}</td>
+                        <td class="p-3.5 text-center font-bold text-navy border-l border-blue-100">${item["Índice de Priorização"] || item["Indice de Priorizacao"] || '-'}</td>
+                        <td class="p-3.5 text-center text-slate-600">${item["Ciclo de Implantação"] || item["Ciclo de Implantacao"] || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function registrarEdicaoPrioridade(id, campo, valor) {
+            if (!alteracoesPendentes[id]) alteracoesPendentes[id] = {};
+            alteracoesPendentes[id][campo] = parseInt(valor);
+            
+            const totalPendentes = Object.keys(alteracoesPendentes).length;
+            document.getElementById('kpi-alteracoes-pendentes').innerText = totalPendentes;
+
+            const btn = document.getElementById('btn-salvar-prioridades');
+            btn.removeAttribute('disabled');
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        async function salvarPrioridades() {
+            const btn = document.getElementById('btn-salvar-prioridades');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Salvando...';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ usuario: DADOS_SISTEMA.usuarioLogado.nome, updates: alteracoesPendentes })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alteracoesPendentes = {};
+                    document.getElementById('kpi-alteracoes-pendentes').innerText = '0';
+                    btn.setAttribute('disabled', 'true');
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    mostrarToast("Alterações salvas com sucesso!");
+                } else {
+                    mostrarToast("Erro ao salvar: " + (result.erro || "Problema no Servidor"));
+                }
+            } catch (err) {
+                console.warn("Erro ao salvar:", err);
+                mostrarToast("Falha na comunicação com a planilha.");
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações</span>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sessaoSalva = sessionStorage.getItem("usuarioOlímpia");
+            if (sessaoSalva) {
+                DADOS_SISTEMA.usuarioLogado = JSON.parse(sessaoSalva);
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('sidebar').classList.remove('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            }
+            await carregarDadosPlanilha();
+        });
+    </script>
+</body>
+</html>
