@@ -33,9 +33,9 @@
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1em;
-            padding-right: 2rem;
+            background-position: right 0.35rem center;
+            background-size: 0.85em;
+            padding-right: 1.5rem;
         }
         #toast {
             visibility: hidden;
@@ -52,6 +52,7 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
+    <!-- LOGIN SCREEN -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-opacity-95">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
             <div class="bg-navy p-6 text-center text-white relative">
@@ -93,6 +94,7 @@
         </div>
     </div>
 
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl hidden">
         <div class="p-5 text-center border-b border-blue-900 flex-shrink-0">
             <div class="bg-white p-2 rounded-xl mb-2 inline-block logo-container shadow-md">
@@ -123,6 +125,7 @@
         </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main id="main-content" class="flex-grow flex flex-col min-w-0 h-full overflow-hidden bg-slate-50 hidden">
         <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sm:px-8 shadow-sm flex-shrink-0">
             <div class="flex items-center space-x-4">
@@ -146,7 +149,7 @@
             </div>
         </header>
 
-        <div class="p-4 sm:p-8 overflow-y-auto max-w-7xl mx-auto w-full h-full pb-24 relative">
+        <div class="p-4 sm:p-8 overflow-y-auto max-w-full mx-auto w-full h-full pb-24 relative">
 
             <!-- PRIORIDADES SECTION -->
             <section id="prioridades" class="section-content active">
@@ -154,30 +157,41 @@
                     <div>
                         <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye text-gold mr-2"></i>Avaliação de Prioridades</h3>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Servidor(a) <b id="info-usuario-logado">Usuário</b>. O sistema exibe apenas as prioridades vinculadas ao seu nome na coluna <b>Responsável da Área</b>. Clique em qualquer registro para visualizar e editar os critérios.
+                            Servidor(a) <b id="info-usuario-logado">Usuário</b>. O sistema exibe apenas as prioridades vinculadas ao seu nome na coluna <b>Responsável da Área</b>. Edite os critérios (1 a 5) diretamente na tabela e clique em salvar.
                         </p>
+                    </div>
+                    <div>
+                        <button onclick="salvarTodasAlteracoes()" id="btn-salvar-global" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-2 shadow-md hidden">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Salvar Alterações</span>
+                        </button>
                     </div>
                 </div>
 
                 <div class="card p-0 overflow-hidden border-t-8 border-navy">
                     <div class="overflow-x-auto bg-white">
                         <table class="w-full text-left text-xs whitespace-nowrap">
-                            <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                            <thead class="bg-slate-100 text-slate-700 uppercase text-[9px] tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3.5 font-bold text-center">Ordem</th>
-                                    <th class="p-3.5 font-bold">Prioridade</th>
-                                    <th class="p-3.5 font-bold">ID</th>
-                                    <th class="p-3.5 font-bold">Processo</th>
-                                    <th class="p-3.5 font-bold">Secretaria</th>
-                                    <th class="p-3.5 font-bold">Divisão</th>
-                                    <th class="p-3.5 font-bold">Responsável da Área</th>
-                                    <th class="p-3.5 font-bold text-center">Índice Prior.</th>
-                                    <th class="p-3.5 font-bold text-center">Ciclo</th>
-                                    <th class="p-3.5 font-bold text-center">Ações</th>
+                                    <th class="p-3 font-bold text-center">Ordem</th>
+                                    <th class="p-3 font-bold">Prioridade</th>
+                                    <th class="p-3 font-bold">ID</th>
+                                    <th class="p-3 font-bold">Processo</th>
+                                    <th class="p-3 font-bold">Secretaria</th>
+                                    <th class="p-3 font-bold">Divisão</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Imp. Cidadão</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Risco Atual</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Vol. Exec.</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Custo Oper.</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Imp. Interno</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Viab. 90d</th>
+                                    <th class="p-3 font-bold text-center bg-blue-50/80">Gov. & Dep.</th>
+                                    <th class="p-3 font-bold text-center">Índice Prior.</th>
+                                    <th class="p-3 font-bold text-center">Ciclo</th>
                                 </tr>
                             </thead>
                             <tbody class="text-slate-800 font-medium divide-y divide-slate-100" id="tbody-prioridades">
-                                <tr><td colspan="10" class="p-8 text-center text-slate-400 italic">Carregando prioridades...</td></tr>
+                                <tr><td colspan="15" class="p-8 text-center text-slate-400 italic">Carregando prioridades...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -189,29 +203,21 @@
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 border-l-4 border-navy">
                     <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-stethoscope text-gold mr-2"></i>Diagnóstico e Melhorias</h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        Acompanhamento dos diagnósticos operacionais, riscos identificados, sugestões de melhoria e resultados esperados para cada processo.
+                        Acompanhamento dos diagnósticos operacionais e sugestões de melhoria para cada processo.
                     </p>
                 </div>
 
                 <div class="card p-0 overflow-hidden border-t-8 border-navy">
                     <div class="overflow-x-auto bg-white">
-                        <table class="w-full text-left text-xs whitespace-nowrap">
+                        <table class="w-full text-left text-xs">
                             <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3.5 font-bold">ID Processo</th>
-                                    <th class="p-3.5 font-bold">Processo</th>
-                                    <th class="p-3.5 font-bold">Secretaria</th>
-                                    <th class="p-3.5 font-bold">Diagnóstico Atual</th>
-                                    <th class="p-3.5 font-bold">Riscos e Impactos</th>
-                                    <th class="p-3.5 font-bold">Sugestão de Melhoria</th>
-                                    <th class="p-3.5 font-bold">Resultado Esperado</th>
-                                    <th class="p-3.5 font-bold text-center">Tipo</th>
-                                    <th class="p-3.5 font-bold text-center">Complexidade</th>
-                                    <th class="p-3.5 font-bold text-center">Situação</th>
+                                    <th class="p-3.5 font-bold w-1/2">Diagnóstico Atual</th>
+                                    <th class="p-3.5 font-bold w-1/2">Sugestão de Melhoria</th>
                                 </tr>
                             </thead>
                             <tbody class="text-slate-800 font-medium divide-y divide-slate-100" id="tbody-diagnostico">
-                                <tr><td colspan="10" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
+                                <tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -221,27 +227,7 @@
         </div>
     </main>
 
-    <div id="modal-detalhe" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
-            <div class="bg-navy text-white px-6 py-4 flex items-center justify-between border-b border-blue-900 flex-shrink-0">
-                <h3 id="modal-titulo" class="text-xs sm:text-sm font-extrabold uppercase tracking-wider flex items-center"><i class="fa-solid fa-pen-to-square text-gold mr-2.5"></i> Ficha da Prioridade</h3>
-                <button onclick="fecharModalDetalhe()" class="text-slate-300 hover:text-white text-xl transition-colors p-1"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto flex-grow space-y-5 bg-slate-50" id="modal-conteudo">
-                <!-- Conteúdo gerado dinamicamente -->
-            </div>
-            
-            <div class="bg-slate-100 px-6 py-4 border-t border-slate-200 flex justify-end items-center gap-3 flex-shrink-0">
-                <button onclick="fecharModalDetalhe()" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition font-bold text-xs uppercase">Cancelar</button>
-                <button id="btn-salvar-modal" onclick="salvarPrioridadeModal()" class="bg-emerald-600 text-white hover:bg-emerald-700 px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-2 shadow-md">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span>Salvar Alterações</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
+    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-6 right-6 flex items-center w-full max-w-xs p-4 space-x-3 text-slate-700 bg-white rounded-xl shadow-2xl border-l-4 border-emerald-500 z-50">
         <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-emerald-500 bg-emerald-100 rounded-lg">
             <i class="fa-solid fa-check"></i>
@@ -259,8 +245,7 @@
             usuarios: []
         };
 
-        let idPrioridadeEditando = null;
-        let alteracoesModal = {};
+        let alteracoesPendentes = {};
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
@@ -427,9 +412,15 @@
             });
 
             if (!lista.length) {
-                tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade atribuída ao seu nome ("' + user.nome + '") na coluna Responsável da Área.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade atribuída ao seu nome ("' + user.nome + '") na coluna Responsável da Área.</td></tr>';
                 return;
             }
+
+            const camposCriterios = [
+                "Impacto no Cidadão", "Risco Atual", "Volume de Execução", 
+                "Custo Operacional", "Impacto Interno", "Viabilidade em 90 dias", 
+                "Governabilidade e Dependências"
+            ];
 
             tbody.innerHTML = lista.map((item, index) => {
                 const id = item.ID || item.id || '';
@@ -442,170 +433,77 @@
                 const indice = item["Índice de Priorização"] || item["Indice de Priorizacao"] || '-';
                 const ciclo = item["Ciclo de Implantação"] || item["Ciclo de Implantacao"] || '-';
 
-                return `
-                    <tr class="hover:bg-blue-50/50 transition cursor-pointer" onclick="abrirModalDetalhe('${id}')">
-                        <td class="p-3.5 text-center font-bold text-slate-700">${ordem}</td>
-                        <td class="p-3.5 font-bold text-navy">${prioridade}</td>
-                        <td class="p-3.5 font-black text-navy">#${id}</td>
-                        <td class="p-3.5 text-slate-700 font-semibold truncate max-w-[200px]" title="${processo}">${processo}</td>
-                        <td class="p-3.5 font-bold text-slate-800">${secretaria}</td>
-                        <td class="p-3.5 text-slate-600 uppercase text-[10px]">${divisao}</td>
-                        <td class="p-3.5 font-medium text-slate-700">${responsavel}</td>
-                        <td class="p-3.5 text-center font-extrabold text-navy">${indice}</td>
-                        <td class="p-3.5 text-center text-slate-600">${ciclo}</td>
-                        <td class="p-3.5 text-center">
-                            <button class="bg-navy text-gold px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wider hover:bg-blue-900 transition shadow-sm">
-                                <i class="fa-solid fa-eye mr-1"></i> Detalhes
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderizarDiagnostico() {
-            const tbody = document.getElementById('tbody-diagnostico');
-            const lista = DADOS_SISTEMA.diagnostico;
-
-            if (!lista.length) {
-                tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico encontrado na planilha.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = lista.map(item => {
-                const idProc = item["ID Processo"] || '-';
-                const proc = item["Processo"] || '-';
-                const sec = item["Secretaria"] || '-';
-                const diag = item["Diagnóstico Atual"] || item["Diagnostico Atual"] || '-';
-                const riscos = item["Riscos e Impactos"] || '-';
-                const sugestao = item["Sugestão de Melhoria"] || item["Sugestao de Melhoria"] || '-';
-                const resultado = item["Resultado Esperado"] || '-';
-                const tipo = item["Tipo de Melhoria"] || '-';
-                const complexidade = item["Complexidade"] || '-';
-                const situacao = item["Situação da Melhoria"] || item["Situacao da Melhoria"] || '-';
+                let selectsHtml = '';
+                camposCriterios.forEach(campo => {
+                    const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
+                    const valorAtual = item[chaveReal] !== undefined ? item[chaveReal] : '';
+                    
+                    let sel = `<select onchange="registrarAlteracao('${id}', '${campo}', this.value)" class="criterio-select w-14 bg-blue-50/70 border border-blue-300 text-slate-800 text-xs font-bold rounded-lg p-1.5 text-center focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
+                        <option value="" ${!valorAtual ? 'selected' : ''} disabled>-</option>`;
+                    for(let i=1; i<=5; i++) {
+                        sel += `<option value="${i}" ${valorAtual == i ? 'selected' : ''}>${i}</option>`;
+                    }
+                    sel += `</select>`;
+                    selectsHtml += `<td class="p-2 text-center bg-blue-50/20">${sel}</td>`;
+                });
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3.5 font-black text-navy">#${idProc}</td>
-                        <td class="p-3.5 font-bold text-slate-800 truncate max-w-[180px]" title="${proc}">${proc}</td>
-                        <td class="p-3.5 text-slate-700">${sec}</td>
-                        <td class="p-3.5 text-slate-600 truncate max-w-[180px]" title="${diag}">${diag}</td>
-                        <td class="p-3.5 text-slate-600 truncate max-w-[180px]" title="${riscos}">${riscos}</td>
-                        <td class="p-3.5 text-slate-600 truncate max-w-[180px]" title="${sugestao}">${sugestao}</td>
-                        <td class="p-3.5 text-slate-600 truncate max-w-[150px]" title="${resultado}">${resultado}</td>
-                        <td class="p-3.5 text-center text-slate-700 font-semibold">${tipo}</td>
-                        <td class="p-3.5 text-center text-amber-700 font-bold">${complexidade}</td>
-                        <td class="p-3.5 text-center font-bold text-emerald-700">${situacao}</td>
+                        <td class="p-3 text-center font-bold text-slate-700">${ordem}</td>
+                        <td class="p-3 font-bold text-navy">${prioridade}</td>
+                        <td class="p-3 font-black text-navy">#${id}</td>
+                        <td class="p-3 text-slate-700 font-semibold truncate max-w-[160px]" title="${processo}">${processo}</td>
+                        <td class="p-3 font-bold text-slate-800">${secretaria}</td>
+                        <td class="p-3 text-slate-600 uppercase text-[10px]">${divisao}</td>
+                        ${selectsHtml}
+                        <td class="p-3 text-center font-extrabold text-navy">${indice}</td>
+                        <td class="p-3 text-center text-slate-600">${ciclo}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function abrirModalDetalhe(id) {
-            idPrioridadeEditando = id;
-            alteracoesModal = {};
-            const item = DADOS_SISTEMA.prioridades.find(p => (p.ID || p.id || '').toString() === id.toString());
-            if (!item) return;
-
-            document.getElementById('modal-titulo').innerHTML = `<i class="fa-solid fa-pen-to-square text-gold mr-2.5"></i> Ficha da Prioridade #${id}`;
+        function registrarAlteracao(id, campo, valor) {
+            if(!alteracoesPendentes[id]) {
+                alteracoesPendentes[id] = {};
+            }
+            alteracoesPendentes[id][campo] = parseInt(valor);
             
-            const camposEditaveis = [
-                "Impacto no Cidadão", "Risco Atual", "Volume de Execução", 
-                "Custo Operacional", "Impacto Interno", "Viabilidade em 90 dias", 
-                "Governabilidade e Dependências"
-            ];
-
-            const camposFixos = [
-                "Ordem", "Prioridade", "ID", "Processo", "Secretaria", "Divisão", 
-                "Descrição", "Prazo", "Responsável da Área", "Índice de Priorização", "Ciclo de Implantação"
-            ];
-
-            let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
-
-            // Exibir dados informativos (A:G fixos)
-            camposFixos.forEach(campo => {
-                const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
-                const valor = item[chaveReal] !== undefined ? item[chaveReal] : '-';
-                html += `
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">${campo}</span>
-                        <span class="text-xs font-bold text-slate-800">${valor}</span>
-                    </div>
-                `;
-            });
-
-            html += `</div><hr class="border-slate-200 my-2"><h4 class="text-xs font-black text-navy uppercase tracking-wider mb-3"><i class="fa-solid fa-sliders text-gold mr-2"></i> Critérios de Avaliação (Editáveis: 1 a 5)</h4><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
-
-            // Exibir critérios editáveis (H:N) com selects de 1 a 5
-            camposEditaveis.forEach(campo => {
-                const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
-                const valorAtual = item[chaveReal] || "";
-                
-                let selectHtml = `<select onchange="registrarEdicaoModal('${campo}', this.value)" class="criterio-select w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl p-3 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
-                    <option value="" ${!valorAtual ? 'selected' : ''} disabled>Selecione (1 a 5)...</option>`;
-                
-                for(let i=1; i<=5; i++) {
-                    selectHtml += `<option value="${i}" ${valorAtual == i ? 'selected' : ''}>${i}</option>`;
-                }
-                selectHtml += `</select>`;
-
-                html += `
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                        <label class="block text-[10px] font-extrabold text-navy uppercase tracking-wider mb-2">${campo}</label>
-                        ${selectHtml}
-                    </div>
-                `;
-            });
-
-            html += `</div>`;
-            document.getElementById('modal-conteudo').innerHTML = html;
-            document.getElementById('modal-detalhe').classList.remove('hidden');
+            document.getElementById('btn-salvar-global').classList.remove('hidden');
         }
 
-        function fecharModalDetalhe() {
-            document.getElementById('modal-detalhe').classList.add('hidden');
-            idPrioridadeEditando = null;
-            alteracoesModal = {};
-        }
-
-        function registrarEdicaoModal(campo, valor) {
-            alteracoesModal[campo] = parseInt(valor);
-        }
-
-        async function salvarPrioridadeModal() {
-            if (!idPrioridadeEditando || Object.keys(alteracoesModal).length === 0) {
-                mostrarToast("Nenhuma alteração foi realizada.");
-                fecharModalDetalhe();
+        async function salvarTodasAlteracoes() {
+            if (Object.keys(alteracoesPendentes).length === 0) {
+                mostrarToast("Nenhuma alteração pendente.");
                 return;
             }
 
-            const btn = document.getElementById('btn-salvar-modal');
+            const btn = document.getElementById('btn-salvar-global');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Salvando...';
             btn.setAttribute('disabled', 'true');
 
             try {
-                let updatesPayload = {};
-                updatesPayload[idPrioridadeEditando] = alteracoesModal;
-
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ usuario: DADOS_SISTEMA.usuarioLogado.nome, updates: updatesPayload })
+                    body: JSON.stringify({ usuario: DADOS_SISTEMA.usuarioLogado.nome, updates: alteracoesPendentes })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    // Atualiza localmente
-                    const item = DADOS_SISTEMA.prioridades.find(p => (p.ID || p.id || '').toString() === idPrioridadeEditando.toString());
-                    if (item) {
-                        for (let campo in alteracoesModal) {
-                            const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
-                            item[chaveReal] = alteracoesModal[campo];
+                    for (let id in alteracoesPendentes) {
+                        const item = DADOS_SISTEMA.prioridades.find(p => (p.ID || p.id || '').toString() === id.toString());
+                        if (item) {
+                            for (let campo in alteracoesPendentes[id]) {
+                                const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
+                                item[chaveReal] = alteracoesPendentes[id][campo];
+                            }
                         }
                     }
+                    alteracoesPendentes = {};
+                    btn.classList.add('hidden');
                     renderizarPrioridades();
-                    fecharModalDetalhe();
-                    mostrarToast("Alterações salvas com sucesso!");
+                    mostrarToast("Alterações salvas com sucesso no Google Sheets!");
                 } else {
                     mostrarToast("Erro ao salvar: " + (result.erro || "Problema no Servidor"));
                 }
@@ -616,6 +514,28 @@
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações</span>';
                 btn.removeAttribute('disabled');
             }
+        }
+
+        function renderizarDiagnostico() {
+            const tbody = document.getElementById('tbody-diagnostico');
+            const lista = DADOS_SISTEMA.diagnostico;
+
+            if (!lista.length) {
+                tbody.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico encontrado na planilha.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lista.map(item => {
+                const diag = item["Diagnóstico Atual"] || item["Diagnostico Atual"] || '-';
+                const sugestao = item["Sugestão de Melhoria"] || item["Sugestao de Melhoria"] || '-';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[300px] border-r border-slate-100">${diag}</td>
+                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[300px]">${sugestao}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
