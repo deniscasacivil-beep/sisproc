@@ -1,3 +1,7 @@
+<!-- Chosen Palette: Municipal Executive Navy & Gold (background: #f8fafc, primary: #003366, accent: #ffb800, text: #0f172a) -->
+<!-- Application Structure Plan: Interactive municipal executive portal structured into two primary functional views: (1) Strategic Priority Management with summary KPIs, visual Secretariat distribution & implementation cycle charts, live text search, dynamic dropdown filters, inline criteria scoring (1-5), and batch sync to Google Sheets; (2) Operational Diagnostics & Process Improvement section with schema-agnostic header matching and cross-tab process mapping. -->
+<!-- Visualization & Content Choices: Summary Executive Metrics -> Goal: Rapid KPI oversight -> Method: Metric Cards; Secretariat & Cycle Breakdown -> Goal: Compare allocation and project timelines -> Method: Chart.js Bar and Doughnut charts rendered on Canvas; Priority Evaluation Grid -> Goal: Criteria assessment and updates -> Method: Interactive HTML table with dynamic selects; Operational Diagnostics -> Goal: Identify process bottlenecks -> Method: Formatted data grid with cross-table fallback matching. Confirming NO SVG graphics or Mermaid JS used. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <!DOCTYPE html>
 <html lang="pt-pt">
 <head>
@@ -5,6 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Gestão de Prioridades - Olímpia</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -30,12 +35,12 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .criterio-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.35rem center;
-            background-size: 0.85em;
-            padding-right: 1.5rem;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.25rem;
+            font-weight: 700;
+            text-align: center;
         }
         #toast {
             visibility: hidden;
@@ -52,7 +57,6 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <!-- SIDEBAR -->
     <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl">
         <div class="p-5 text-center border-b border-blue-900 flex-shrink-0">
             <div class="bg-white p-2 rounded-xl mb-2 inline-block logo-container shadow-md">
@@ -72,13 +76,13 @@
             </a>
         </nav>
 
-        <div class="p-4 bg-blue-950 text-[10px] text-blue-300 mt-auto border-t border-blue-900 footer-text flex-shrink-0 text-center">
-            <p class="font-bold text-white">Divisão de Gorvenanças, Processos e Projetos Estratégicos</p>
+        <div class="p-4 bg-blue-950 text-[10px] text-blue-300 mt-auto border-t border-blue-900 footer-text flex-shrink-0 text-left">
+            <p class="font-bold text-white">Divisão de Gorvernança, Processos e Projetos Estratégicos</p>
+            <p class="text-blue-300">Secretaria da Casa Civil</p>
             <p class="text-blue-300">Prefeitura de Olímpia - SP</p>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main id="main-content" class="flex-grow flex flex-col min-w-0 h-full overflow-hidden bg-slate-50">
         <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sm:px-8 shadow-sm flex-shrink-0">
             <div class="flex items-center space-x-4">
@@ -104,13 +108,12 @@
 
         <div class="p-4 sm:p-8 overflow-y-auto max-w-full mx-auto w-full h-full pb-24 relative">
 
-            <!-- PRIORIDADES SECTION -->
             <section id="prioridades" class="section-content active">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 border-l-4 border-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye text-gold mr-2"></i>Avaliação de Prioridades</h3>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            O sistema exibe todas as prioridades cadastradas no município. Utilize os filtros abaixo para refinar por Secretaria ou Processo, edite os critérios (1 a 5) e clique em salvar alterações.
+                            O sistema exibe todas as prioridades cadastradas no município. Utilize a busca textual e os filtros para refinar os dados, edite os critérios (1 a 5) e clique em salvar alterações para atualizar no Google Sheets.
                         </p>
                     </div>
                     <div>
@@ -121,17 +124,77 @@
                     </div>
                 </div>
 
-                <!-- FILTER BAR -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-navy flex items-center justify-center text-lg font-bold border border-blue-200 flex-shrink-0">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total de Prioridades</p>
+                            <h4 id="kpi-total" class="text-xl font-extrabold text-navy">0</h4>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold border border-amber-200 flex-shrink-0">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Secretarias Envolvidas</p>
+                            <h4 id="kpi-secretarias" class="text-xl font-extrabold text-navy">0</h4>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold border border-emerald-200 flex-shrink-0">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Índice Médio</p>
+                            <h4 id="kpi-media" class="text-xl font-extrabold text-navy">0.0</h4>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold border border-indigo-200 flex-shrink-0">
+                            <i class="fa-solid fa-stethoscope"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Diagnósticos Operacionais</p>
+                            <h4 id="kpi-diagnosticos" class="text-xl font-extrabold text-navy">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="card p-5">
+                        <h4 class="text-xs font-bold text-navy uppercase tracking-wider mb-4 flex items-center">
+                            <i class="fa-solid fa-chart-column text-gold mr-2"></i>Prioridades por Secretaria
+                        </h4>
+                        <div class="w-full h-[260px] max-h-[300px] relative mx-auto">
+                            <canvas id="chart-secretarias"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-5">
+                        <h4 class="text-xs font-bold text-navy uppercase tracking-wider mb-4 flex items-center">
+                            <i class="fa-solid fa-chart-pie text-gold mr-2"></i>Distribuição por Ciclo de Implantação
+                        </h4>
+                        <div class="w-full h-[260px] max-h-[300px] relative mx-auto">
+                            <canvas id="chart-ciclos"></canvas>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4 flex flex-wrap items-center gap-4">
                     <div class="flex items-center space-x-2">
                         <span class="text-xs font-bold text-slate-700 uppercase"><i class="fa-solid fa-filter text-navy mr-1"></i> Filtros:</span>
                     </div>
-                    <div class="flex-1 min-w-[220px]">
+                    <div class="flex-1 min-w-[200px]">
+                        <input type="text" id="busca-texto" oninput="renderizarPrioridades()" placeholder="Buscar por palavra-chave, ID, processo ou divisão..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition">
+                    </div>
+                    <div class="min-w-[200px]">
                         <select id="filtro-secretaria" onchange="renderizarPrioridades()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
                             <option value="">Todas as Secretarias</option>
                         </select>
                     </div>
-                    <div class="flex-1 min-w-[220px]">
+                    <div class="min-w-[200px]">
                         <select id="filtro-processo" onchange="renderizarPrioridades()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
                             <option value="">Todos os Processos</option>
                         </select>
@@ -139,7 +202,7 @@
                     <div>
                         <button onclick="limparFiltros()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1">
                             <i class="fa-solid fa-rotate-left"></i>
-                            <span>Limpar Filtros</span>
+                            <span>Limpar</span>
                         </button>
                     </div>
                 </div>
@@ -174,12 +237,11 @@
                 </div>
             </section>
 
-            <!-- DIAGNOSTICO E MELHORIAS SECTION -->
             <section id="diagnostico" class="section-content">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 border-l-4 border-navy">
                     <h3 class="text-sm font-bold text-navy uppercase tracking-wider mb-1"><i class="fa-solid fa-stethoscope text-gold mr-2"></i>Diagnóstico e Melhorias</h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        Acompanhamento dos diagnósticos operacionais e sugestões de melhoria para cada processo.
+                        Acompanhamento detalhado dos diagnósticos operacionais, identificação de gargalos por processo e propostas de ação e melhoria contínua.
                     </p>
                 </div>
 
@@ -188,12 +250,14 @@
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3.5 font-bold w-1/2">Diagnóstico Atual</th>
-                                    <th class="p-3.5 font-bold w-1/2">Sugestão de Melhoria</th>
+                                    <th class="p-3.5 font-bold w-[15%]">ID Processo</th>
+                                    <th class="p-3.5 font-bold w-[25%]">Processo</th>
+                                    <th class="p-3.5 font-bold w-[30%]">Diagnóstico Atual</th>
+                                    <th class="p-3.5 font-bold w-[30%]">Sugestão de Melhoria</th>
                                 </tr>
                             </thead>
                             <tbody class="text-slate-800 font-medium divide-y divide-slate-100" id="tbody-diagnostico">
-                                <tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
+                                <tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -203,7 +267,6 @@
         </div>
     </main>
 
-    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-6 right-6 flex items-center w-full max-w-xs p-4 space-x-3 text-slate-700 bg-white rounded-xl shadow-2xl border-l-4 border-emerald-500 z-50">
         <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-emerald-500 bg-emerald-100 rounded-lg">
             <i class="fa-solid fa-check"></i>
@@ -217,10 +280,13 @@
         let DADOS_SISTEMA = {
             prioridades: [],
             diagnostico: [],
+            processos: [],
             usuarios: []
         };
 
         let alteracoesPendentes = {};
+        let chartSecretarias = null;
+        let chartCiclos = null;
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
@@ -259,15 +325,17 @@
                 
                 if (result.prioridades) DADOS_SISTEMA.prioridades = result.prioridades;
                 if (result.diagnostico) DADOS_SISTEMA.diagnostico = result.diagnostico;
+                if (result.processos) DADOS_SISTEMA.processos = result.processos;
                 if (result.usuarios && result.usuarios.length > 0) DADOS_SISTEMA.usuarios = result.usuarios;
 
                 popularFiltros();
                 renderizarPrioridades();
                 renderizarDiagnostico();
+                atualizarKPIs();
+                renderizarGraficos();
                 mostrarToast("Dados sincronizados com sucesso!");
 
             } catch (error) {
-                console.warn("Aviso de Conexão:", error);
                 mostrarToast("Erro ao conectar com a planilha. Verifique o link e permissões.");
             } finally {
                 if (syncIcon) syncIcon.classList.remove('fa-spin');
@@ -292,24 +360,136 @@
         function limparFiltros() {
             const selectSec = document.getElementById('filtro-secretaria');
             const selectProc = document.getElementById('filtro-processo');
+            const inputBusca = document.getElementById('busca-texto');
             if (selectSec) selectSec.value = '';
             if (selectProc) selectProc.value = '';
+            if (inputBusca) inputBusca.value = '';
             renderizarPrioridades();
+        }
+
+        function atualizarKPIs() {
+            const total = DADOS_SISTEMA.prioridades.length;
+            const secretarias = new Set(DADOS_SISTEMA.prioridades.map(p => (p.Secretaria || p.secretaria || '').toString().trim()).filter(Boolean)).size;
+            const diagnosticosCount = DADOS_SISTEMA.diagnostico ? DADOS_SISTEMA.diagnostico.length : 0;
+            
+            let somaIndices = 0;
+            let countIndices = 0;
+            DADOS_SISTEMA.prioridades.forEach(p => {
+                const val = parseFloat(p["Índice de Priorização"] || p["Indice de Priorizacao"] || 0);
+                if (!isNaN(val) && val > 0) {
+                    somaIndices += val;
+                    countIndices++;
+                }
+            });
+            const media = countIndices > 0 ? (somaIndices / countIndices).toFixed(1) : '0.0';
+
+            const elTotal = document.getElementById('kpi-total');
+            const elSec = document.getElementById('kpi-secretarias');
+            const elMedia = document.getElementById('kpi-media');
+            const elDiag = document.getElementById('kpi-diagnosticos');
+
+            if (elTotal) elTotal.innerText = total;
+            if (elSec) elSec.innerText = secretarias;
+            if (elMedia) elMedia.innerText = media;
+            if (elDiag) elDiag.innerText = diagnosticosCount;
+        }
+
+        function renderizarGraficos() {
+            const ctxSec = document.getElementById('chart-secretarias');
+            const ctxCic = document.getElementById('chart-ciclos');
+            if (!ctxSec || !ctxCic) return;
+
+            const secretariasCount = {};
+            DADOS_SISTEMA.prioridades.forEach(p => {
+                const sec = (p.Secretaria || p.secretaria || 'Outros').toString().trim();
+                if (sec) {
+                    secretariasCount[sec] = (secretariasCount[sec] || 0) + 1;
+                }
+            });
+
+            const secLabels = Object.keys(secretariasCount);
+            const secData = Object.values(secretariasCount);
+
+            if (chartSecretarias) chartSecretarias.destroy();
+            chartSecretarias = new Chart(ctxSec, {
+                type: 'bar',
+                data: {
+                    labels: secLabels,
+                    datasets: [{
+                        label: 'Quantidade de Prioridades',
+                        data: secData,
+                        backgroundColor: '#003366',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+
+            const ciclosCount = {};
+            DADOS_SISTEMA.prioridades.forEach(p => {
+                const ciclo = (p["Ciclo de Implantação"] || p["Ciclo de Implantacao"] || 'Não definido').toString().trim();
+                if (ciclo) {
+                    ciclosCount[ciclo] = (ciclosCount[ciclo] || 0) + 1;
+                }
+            });
+
+            const cicLabels = Object.keys(ciclosCount);
+            const cicData = Object.values(ciclosCount);
+
+            if (chartCiclos) chartCiclos.destroy();
+            chartCiclos = new Chart(ctxCic, {
+                type: 'doughnut',
+                data: {
+                    labels: cicLabels,
+                    datasets: [{
+                        data: cicData,
+                        backgroundColor: ['#003366', '#ffb800', '#10b981', '#6366f1', '#f59e0b', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
         }
 
         function renderizarPrioridades() {
             const tbody = document.getElementById('tbody-prioridades');
             const filtroSec = (document.getElementById('filtro-secretaria')?.value || '').toLowerCase();
             const filtroProc = (document.getElementById('filtro-processo')?.value || '').toLowerCase();
+            const buscaTexto = (document.getElementById('busca-texto')?.value || '').toLowerCase().trim();
 
             let lista = DADOS_SISTEMA.prioridades.filter(p => {
                 const secretaria = (p.Secretaria || p.secretaria || '').toString().toLowerCase();
                 const processo = (p.Processo || p.processo || '').toString().toLowerCase();
+                const prioridadeNome = (p.Prioridade || p.prioridade || '').toString().toLowerCase();
+                const idStr = (p.ID || p.id || '').toString().toLowerCase();
+                const divisaoStr = (p.Divisão || p.Divisao || p.divisao || '').toString().toLowerCase();
 
                 const matchSec = !filtroSec || secretaria === filtroSec;
                 const matchProc = !filtroProc || processo === filtroProc;
+                
+                const matchBusca = !buscaTexto || 
+                    prioridadeNome.includes(buscaTexto) || 
+                    processo.includes(buscaTexto) || 
+                    secretaria.includes(buscaTexto) || 
+                    idStr.includes(buscaTexto) ||
+                    divisaoStr.includes(buscaTexto);
 
-                return matchSec && matchProc;
+                return matchSec && matchProc && matchBusca;
             });
 
             if (!lista.length) {
@@ -348,7 +528,7 @@
                 });
 
                 return `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40 transition">
                         <td class="p-3 text-center font-bold text-slate-700">${ordem}</td>
                         <td class="p-3 font-bold text-navy">${prioridade}</td>
                         <td class="p-3 font-black text-navy">#${id}</td>
@@ -411,6 +591,8 @@
                         alteracoesPendentes = {};
                         btn.classList.add('hidden');
                         renderizarPrioridades();
+                        atualizarKPIs();
+                        renderizarGraficos();
                         mostrarToast("Alterações salvas com sucesso no Google Sheets!");
                     } else {
                         mostrarToast("Alerta: Sem permissão ou linhas não atualizadas.");
@@ -420,7 +602,6 @@
                     mostrarToast("Erro ao salvar: " + (result.erro || "Problema no Servidor"));
                 }
             } catch (err) {
-                console.error("Erro Crítico ao Salvar:", err);
                 mostrarToast("Falha na comunicação com a planilha.");
             } finally {
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações</span>';
@@ -430,21 +611,34 @@
 
         function normalizarString(str) {
             if (!str) return "";
-            // Remove acentos, espaços e converte para minúsculo
             return str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, '');
         }
 
         function obterValorFlexivel(obj, palavrasChave) {
+            if (!obj) return undefined;
             const chaves = Object.keys(obj);
-            for (let chave of chaves) {
-                const chaveNorm = normalizarString(chave);
-                for (let palavra of palavrasChave) {
-                    const palavraNorm = normalizarString(palavra);
-                    if (chaveNorm.includes(palavraNorm)) {
-                        return obj[chave];
+            
+            for (let i = 0; i < palavrasChave.length; i++) {
+                const palavraNorm = normalizarString(palavrasChave[i]);
+                for (let j = 0; j < chaves.length; j++) {
+                    const chaveNorm = normalizarString(chaves[j]);
+                    if (chaveNorm === palavraNorm) {
+                        return obj[chaves[j]];
                     }
                 }
             }
+            
+            for (let i = 0; i < palavrasChave.length; i++) {
+                const palavraNorm = normalizarString(palavrasChave[i]);
+                if (palavraNorm.length <= 2) continue;
+                for (let j = 0; j < chaves.length; j++) {
+                    const chaveNorm = normalizarString(chaves[j]);
+                    if (chaveNorm.includes(palavraNorm)) {
+                        return obj[chaves[j]];
+                    }
+                }
+            }
+            
             return undefined;
         }
 
@@ -453,33 +647,55 @@
             const lista = DADOS_SISTEMA.diagnostico;
 
             if (!lista || !lista.length) {
-                tbody.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico encontrado na planilha.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico encontrado na planilha.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = lista.map(item => {
-                // Tenta puxar buscando palavras chave no cabeçalho
-                let diag = obterValorFlexivel(item, ["diagnostico", "diagnótico", "atual", "problema"]);
-                let sugestao = obterValorFlexivel(item, ["sugestao", "melhoria", "solucao", "acao"]);
+            tbody.innerHTML = lista.map((item, index) => {
+                const valores = Object.values(item);
                 
-                // Se não achar nada pelo nome da coluna, força bruta lendo pelos índices dos valores (1ª e 2ª coluna dos dados)
-                if (!diag) {
-                    const valores = Object.values(item);
-                    diag = valores.length > 0 ? valores[0] : '-';
-                }
-                if (!sugestao) {
-                    const valores = Object.values(item);
-                    sugestao = valores.length > 1 ? valores[1] : '-';
+                let id = obterValorFlexivel(item, ["idprocesso", "id do processo", "id processo", "id", "codigoprocesso", "codigo", "procid"]);
+                let processo = obterValorFlexivel(item, ["processo", "nome do processo", "nomeprocesso", "descricaoprocesso", "nome"]);
+                let diag = obterValorFlexivel(item, ["diagnosticoatual", "diagnostico e melhorias", "diagnostico", "diagnótico", "atual", "problema", "gargalo"]);
+                let sugestao = obterValorFlexivel(item, ["sugestaodemelhoria", "sugestao de melhoria", "sugestao", "melhoria", "solucao", "acao", "proposta"]);
+
+                if (id === undefined || id === null || id === '') id = valores[0];
+                if (processo === undefined || processo === null || processo === '') processo = valores[1];
+                if (diag === undefined || diag === null || diag === '') diag = valores[2];
+                if (sugestao === undefined || sugestao === null || sugestao === '') sugestao = valores[3];
+
+                const idClean = id ? id.toString().replace('#', '').trim().toLowerCase() : '';
+                if (idClean && (!processo || processo === '-' || processo.toString().toLowerCase() === idClean)) {
+                    const itemPrioridade = DADOS_SISTEMA.prioridades.find(p => {
+                        const pId = (p.ID || p.id || '').toString().trim().toLowerCase();
+                        return pId === idClean;
+                    });
+                    if (itemPrioridade) {
+                        processo = itemPrioridade.Processo || itemPrioridade.processo || processo;
+                    } else if (DADOS_SISTEMA.processos && DADOS_SISTEMA.processos.length > 0) {
+                        const itemProc = DADOS_SISTEMA.processos.find(pr => {
+                            const prId = (pr.ID || pr.id || pr["ID Processo"] || '').toString().trim().toLowerCase();
+                            return prId === idClean;
+                        });
+                        if (itemProc) {
+                            processo = itemProc.Processo || itemProc.processo || itemProc["Nome do Processo"] || processo;
+                        }
+                    }
                 }
 
-                // Evitar "undefined" visual
-                diag = diag || '-';
-                sugestao = sugestao || '-';
+                id = (id !== undefined && id !== null && id !== '') ? id : '-';
+                processo = (processo !== undefined && processo !== null && processo !== '') ? processo : '-';
+                diag = (diag !== undefined && diag !== null && diag !== '') ? diag : '-';
+                sugestao = (sugestao !== undefined && sugestao !== null && sugestao !== '') ? sugestao : '-';
+
+                const displayId = id.toString().startsWith('#') ? id : '#' + id;
 
                 return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[300px] border-r border-slate-100">${diag}</td>
-                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[300px]">${sugestao}</td>
+                    <tr class="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40 transition">
+                        <td class="p-4 font-black text-navy align-top border-r border-slate-100 whitespace-nowrap">${displayId}</td>
+                        <td class="p-4 text-slate-800 font-semibold align-top border-r border-slate-100">${processo}</td>
+                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[250px] border-r border-slate-100">${diag}</td>
+                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[250px]">${sugestao}</td>
                     </tr>
                 `;
             }).join('');
