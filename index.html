@@ -73,7 +73,7 @@
         </nav>
 
         <div class="p-4 bg-blue-950 text-[10px] text-blue-300 mt-auto border-t border-blue-900 footer-text flex-shrink-0 text-left">
-            <p class="font-bold text-white">Divisão de Gorvernança, Processos e Projetos Estratégicos</p>
+            <p class="font-bold text-white">Divisão de Governança, Processos e Projetos Estratégicos</p>
             <p class="text-blue-300">Casa Civil | Prefeitura de Olímpia - SP</p>
         </div>
     </aside>
@@ -194,7 +194,6 @@
                     </div>
                 </div>
 
-                <!-- Barra de Ações / Botão Salvar (Posicionado entre o filtro e a tabela) -->
                 <div class="flex justify-between items-center mb-4">
                     <div class="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center space-x-2">
                         <i class="fa-solid fa-table-list text-navy"></i>
@@ -215,6 +214,7 @@
                                 <tr>
                                     <th class="p-3 font-bold text-center">Ordem</th>
                                     <th class="p-3 font-bold">Prioridade</th>
+                                    <th class="p-3 font-bold">Complexidade</th>
                                     <th class="p-3 font-bold">ID</th>
                                     <th class="p-3 font-bold">Processo</th>
                                     <th class="p-3 font-bold">Secretaria</th>
@@ -231,7 +231,7 @@
                                 </tr>
                             </thead>
                             <tbody class="text-slate-800 font-medium divide-y divide-slate-100" id="tbody-prioridades">
-                                <tr><td colspan="15" class="p-8 text-center text-slate-400 italic">Carregando prioridades...</td></tr>
+                                <tr><td colspan="16" class="p-8 text-center text-slate-400 italic">Carregando prioridades...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -246,19 +246,17 @@
                     </p>
                 </div>
 
-                <div class="card p-0 overflow-hidden border-t-8 border-navy">
+                <div class="card p-0 overflow-hidden border-t-8 border-navy shadow-md">
                     <div class="overflow-x-auto bg-white">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                            <thead class="bg-slate-100 text-slate-800 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3.5 font-bold w-[15%]">ID Processo</th>
-                                    <th class="p-3.5 font-bold w-[25%]">Processo</th>
-                                    <th class="p-3.5 font-bold w-[30%]">Diagnóstico Atual</th>
-                                    <th class="p-3.5 font-bold w-[30%]">Sugestão de Melhoria</th>
+                                    <th class="p-4 w-[50%] bg-amber-50/60"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2"></i>Riscos e Impactos</th>
+                                    <th class="p-4 w-[50%] bg-emerald-50/60"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Resultado Esperado</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-slate-800 font-medium divide-y divide-slate-100" id="tbody-diagnostico">
-                                <tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
+                            <tbody class="text-slate-800 divide-y divide-slate-200" id="tbody-diagnostico">
+                                <tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -479,6 +477,7 @@
                 const prioridadeNome = (p.Prioridade || p.prioridade || '').toString().toLowerCase();
                 const idStr = (p.ID || p.id || '').toString().toLowerCase();
                 const divisaoStr = (p.Divisão || p.Divisao || p.divisao || '').toString().toLowerCase();
+                const complexidadeStr = (p.Complexidade || p.complexidade || '').toString().toLowerCase();
 
                 const matchSec = !filtroSec || secretaria === filtroSec;
                 const matchProc = !filtroProc || processo === filtroProc;
@@ -488,13 +487,14 @@
                     processo.includes(buscaTexto) || 
                     secretaria.includes(buscaTexto) || 
                     idStr.includes(buscaTexto) ||
-                    divisaoStr.includes(buscaTexto);
+                    divisaoStr.includes(buscaTexto) ||
+                    complexidadeStr.includes(buscaTexto);
 
                 return matchSec && matchProc && matchBusca;
             });
 
             if (!lista.length) {
-                tbody.innerHTML = '<tr><td colspan="15" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade encontrada com os filtros selecionados.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="16" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade encontrada com os filtros selecionados.</td></tr>';
                 return;
             }
 
@@ -511,6 +511,7 @@
                 const processo = item.Processo || item.processo || '-';
                 const secretaria = item.Secretaria || item.secretaria || '-';
                 const divisao = item.Divisão || item.Divisao || item.divisao || '-';
+                const complexidade = item.Complexidade || item.complexidade || '-';
                 const indice = item["Índice de Priorização"] || item["Indice de Priorizacao"] || '-';
                 const ciclo = item["Ciclo de Implantação"] || item["Ciclo de Implantacao"] || '-';
 
@@ -531,180 +532,113 @@
                 return `
                     <tr class="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40 transition">
                         <td class="p-3 text-center font-bold text-slate-700">${ordem}</td>
-                        <td class="p-3 font-bold text-navy">${prioridade}</td>
+                        <td class="p-3 font-bold">${formatarBadge(prioridade)}</td>
+                        <td class="p-3 font-bold">${formatarBadge(complexidade)}</td>
                         <td class="p-3 font-black text-navy">#${id}</td>
                         <td class="p-3 text-slate-700 font-semibold truncate max-w-[160px]" title="${processo}">${processo}</td>
                         <td class="p-3 font-bold text-slate-800">${secretaria}</td>
                         <td class="p-3 text-slate-600 uppercase text-[10px]">${divisao}</td>
                         ${selectsHtml}
                         <td class="p-3 text-center font-extrabold text-navy">${indice}</td>
-                        <td class="p-3 text-center text-slate-600">${ciclo}</td>
+                        <td class="p-3 text-center">${formatarCiclo(ciclo)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function formatarBadge(texto) {
+            if (!texto || texto === '-') return '-';
+            const t = texto.toString().toLowerCase().trim();
+            let bg = 'bg-slate-100 text-slate-700 border-slate-200';
+            if (t.includes('alta') || t.includes('urgente') || t.includes('crítico') || t.includes('critico')) {
+                bg = 'bg-red-50 text-red-700 border-red-200';
+            } else if (t.includes('média') || t.includes('media') || t.includes('moderada')) {
+                bg = 'bg-amber-50 text-amber-700 border-amber-200';
+            } else if (t.includes('baixa') || t.includes('leve')) {
+                bg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            }
+            return `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${bg} inline-block">${texto}</span>`;
+        }
+
+        function formatarCiclo(texto) {
+            if (!texto || texto === '-') return '-';
+            const t = texto.toString().toLowerCase().trim();
+            let bg = 'bg-slate-100 text-slate-700 border-slate-200';
+            if (t.includes('1') || t.includes('1°') || t.includes('1º') || t.includes('primeiro')) {
+                bg = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+            } else if (t.includes('2') || t.includes('2°') || t.includes('2º') || t.includes('segundo')) {
+                bg = 'bg-blue-100 text-blue-800 border-blue-300';
+            } else if (t.includes('3') || t.includes('3°') || t.includes('3º') || t.includes('terceiro')) {
+                bg = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+            } else if (t.includes('pausado') || t.includes('suspenso')) {
+                bg = 'bg-red-100 text-red-800 border-red-300';
+            }
+            return `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${bg} inline-block">${texto}</span>`;
+        }
+
+        function renderizarDiagnostico() {
+            const tbody = document.getElementById('tbody-diagnostico');
+            if (!tbody) return;
+
+            const lista = DADOS_SISTEMA.diagnostico || [];
+            if (!lista.length) {
+                tbody.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico operacional cadastrado.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lista.map(d => {
+                const riscos = d["Riscos e Impactos"] || d["riscos e impactos"] || d["Diagnóstico Atual"] || d["diagnostico atual"] || '-';
+                const resultado = d["Resultado Esperado"] || d["resultado esperado"] || d["Sugestão de Melhoria"] || d["sugestao de melhoria"] || '-';
+
+                return `
+                    <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                        <td class="p-4 text-slate-700 text-xs leading-relaxed bg-amber-50/40">${riscos}</td>
+                        <td class="p-4 text-slate-700 text-xs leading-relaxed bg-emerald-50/40">${resultado}</td>
                     </tr>
                 `;
             }).join('');
         }
 
         function registrarAlteracao(id, campo, valor) {
-            if(!alteracoesPendentes[id]) {
-                alteracoesPendentes[id] = {};
-            }
-            alteracoesPendentes[id][campo] = parseInt(valor);
-            
-            document.getElementById('btn-salvar-global').classList.remove('hidden');
+            if (!alteracoesPendentes[id]) alteracoesPendentes[id] = {};
+            alteracoesPendentes[id][campo] = valor;
+            const btnSalvar = document.getElementById('btn-salvar-global');
+            if (btnSalvar) btnSalvar.classList.remove('hidden');
         }
 
         async function salvarTodasAlteracoes() {
             if (Object.keys(alteracoesPendentes).length === 0) {
-                mostrarToast("Nenhuma alteração pendente.");
+                mostrarToast("Nenhuma alteração pendente para salvar.");
                 return;
             }
 
-            const btn = document.getElementById('btn-salvar-global');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Salvando...';
-            btn.setAttribute('disabled', 'true');
-
+            mostrarToast("Salvando alterações...");
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    redirect: 'follow',
                     headers: {
                         'Content-Type': 'text/plain;charset=utf-8'
                     },
-                    body: JSON.stringify({ 
-                        usuario: "Painel Geral", 
-                        updates: alteracoesPendentes 
-                    })
+                    body: JSON.stringify({ acao: "atualizar", updates: alteracoesPendentes }),
+                    redirect: "follow"
                 });
+
+                if (!response.ok) throw new Error("Erro ao salvar no servidor.");
                 
-                const result = await response.json();
-                
-                if (result.success) {
-                    if (result.totalAtualizado > 0) {
-                        for (let id in alteracoesPendentes) {
-                            const item = DADOS_SISTEMA.prioridades.find(p => (p.ID || p.id || '').toString() === id.toString());
-                            if (item) {
-                                for (let campo in alteracoesPendentes[id]) {
-                                    const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
-                                    item[chaveReal] = alteracoesPendentes[id][campo];
-                                }
-                            }
-                        }
-                        alteracoesPendentes = {};
-                        btn.classList.add('hidden');
-                        renderizarPrioridades();
-                        atualizarKPIs();
-                        renderizarGraficos();
-                        mostrarToast("Alterações salvas com sucesso no Google Sheets!");
-                    } else {
-                        mostrarToast("Alerta: Sem permissão ou linhas não atualizadas.");
-                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Tentar Novamente</span>';
-                    }
-                } else {
-                    mostrarToast("Erro ao salvar: " + (result.erro || "Problema no Servidor"));
-                }
+                alteracoesPendentes = {};
+                const btnSalvar = document.getElementById('btn-salvar-global');
+                if (btnSalvar) btnSalvar.classList.add('hidden');
+
+                mostrarToast("Alterações salvas com sucesso!");
+                carregarDadosPlanilha();
             } catch (err) {
-                mostrarToast("Falha na comunicação com a planilha.");
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>Salvar Alterações Pendentes</span>';
-                btn.removeAttribute('disabled');
+                mostrarToast("Erro ao salvar alterações. Tente novamente.");
             }
         }
 
-        function normalizarString(str) {
-            if (!str) return "";
-            return str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, '');
-        }
-
-        function obterValorFlexivel(obj, palavrasChave) {
-            if (!obj) return undefined;
-            const chaves = Object.keys(obj);
-            
-            for (let i = 0; i < palavrasChave.length; i++) {
-                const palavraNorm = normalizarString(palavrasChave[i]);
-                for (let j = 0; j < chaves.length; j++) {
-                    const chaveNorm = normalizarString(chaves[j]);
-                    if (chaveNorm === palavraNorm) {
-                        return obj[chaves[j]];
-                    }
-                }
-            }
-            
-            for (let i = 0; i < palavrasChave.length; i++) {
-                const palavraNorm = normalizarString(palavrasChave[i]);
-                if (palavraNorm.length <= 2) continue;
-                for (let j = 0; j < chaves.length; j++) {
-                    const chaveNorm = normalizarString(chaves[j]);
-                    if (chaveNorm.includes(palavraNorm)) {
-                        return obj[chaves[j]];
-                    }
-                }
-            }
-            
-            return undefined;
-        }
-
-        function renderizarDiagnostico() {
-            const tbody = document.getElementById('tbody-diagnostico');
-            const lista = DADOS_SISTEMA.diagnostico;
-
-            if (!lista || !lista.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico encontrado na planilha.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = lista.map((item, index) => {
-                const valores = Object.values(item);
-                
-                let id = obterValorFlexivel(item, ["idprocesso", "id do processo", "id processo", "id", "codigoprocesso", "codigo", "procid"]);
-                let processo = obterValorFlexivel(item, ["processo", "nome do processo", "nomeprocesso", "descricaoprocesso", "nome"]);
-                let diag = obterValorFlexivel(item, ["diagnosticoatual", "diagnostico e melhorias", "diagnostico", "diagnótico", "atual", "problema", "gargalo"]);
-                let sugestao = obterValorFlexivel(item, ["sugestaodemelhoria", "sugestao de melhoria", "sugestao", "melhoria", "solucao", "acao", "proposta"]);
-
-                if (id === undefined || id === null || id === '') id = valores[0];
-                if (processo === undefined || processo === null || processo === '') processo = valores[1];
-                if (diag === undefined || diag === null || diag === '') diag = valores[2];
-                if (sugestao === undefined || sugestao === null || sugestao === '') sugestao = valores[3];
-
-                const idClean = id ? id.toString().replace('#', '').trim().toLowerCase() : '';
-                if (idClean && (!processo || processo === '-' || processo.toString().toLowerCase() === idClean)) {
-                    const itemPrioridade = DADOS_SISTEMA.prioridades.find(p => {
-                        const pId = (p.ID || p.id || '').toString().trim().toLowerCase();
-                        return pId === idClean;
-                    });
-                    if (itemPrioridade) {
-                        processo = itemPrioridade.Processo || itemPrioridade.processo || processo;
-                    } else if (DADOS_SISTEMA.processos && DADOS_SISTEMA.processos.length > 0) {
-                        const itemProc = DADOS_SISTEMA.processos.find(pr => {
-                            const prId = (pr.ID || pr.id || pr["ID Processo"] || '').toString().trim().toLowerCase();
-                            return prId === idClean;
-                        });
-                        if (itemProc) {
-                            processo = itemProc.Processo || itemProc.processo || itemProc["Nome do Processo"] || processo;
-                        }
-                    }
-                }
-
-                id = (id !== undefined && id !== null && id !== '') ? id : '-';
-                processo = (processo !== undefined && processo !== null && processo !== '') ? processo : '-';
-                diag = (diag !== undefined && diag !== null && diag !== '') ? diag : '-';
-                sugestao = (sugestao !== undefined && sugestao !== null && sugestao !== '') ? sugestao : '-';
-
-                const displayId = id.toString().startsWith('#') ? id : '#' + id;
-
-                return `
-                    <tr class="odd:bg-white even:bg-slate-50/70 hover:bg-blue-50/40 transition">
-                        <td class="p-4 font-black text-navy align-top border-r border-slate-100 whitespace-nowrap">${displayId}</td>
-                        <td class="p-4 text-slate-800 font-semibold align-top border-r border-slate-100">${processo}</td>
-                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[250px] border-r border-slate-100">${diag}</td>
-                        <td class="p-4 text-slate-700 leading-relaxed align-top min-w-[250px]">${sugestao}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await carregarDadosPlanilha();
-        });
+        window.onload = function() {
+            carregarDadosPlanilha();
+        };
     </script>
 </body>
 </html>
