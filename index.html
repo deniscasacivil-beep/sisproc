@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Painel de Gestão de Prioridades do Município de Olímpia - SP">
     <title>Painel Gestão de Prioridades de Processos - Olímpia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -56,7 +57,7 @@
     <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl">
         <div class="p-5 text-center border-b border-blue-900 flex-shrink-0">
             <div class="bg-white p-2 rounded-xl mb-2 inline-block logo-container shadow-md">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Bras%C3%A3o_de_Ol%C3%ADmpia%2C_SP.jpg" alt="Brasão de Olímpia" class="h-12 w-auto mx-auto" onerror="this.src='https://via.placeholder.com/64x64?text=Ol%C3%ADmpia'">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Bras%C3%A3o_de_Ol%C3%ADmpia%2C_SP.jpg" alt="Brasão de Olímpia" class="h-12 w-auto mx-auto" onerror="this.src='https://placehold.co/64x64/ffffff/003366?text=Olimpia'">
             </div>
             <h2 class="text-[10px] font-extrabold tracking-widest uppercase text-blue-100 leading-tight px-1">Gestão de Prioridades & Estratégia</h2>
         </div>
@@ -81,7 +82,8 @@
     <main id="main-content" class="flex-grow flex flex-col min-w-0 h-full overflow-hidden bg-slate-50">
         <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sm:px-8 shadow-sm flex-shrink-0">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="text-navy hover:text-blue-700 transition p-1.5 rounded-lg hover:bg-slate-100" title="Recolher / Expandir Menu">
+                <!-- ARIA Label added for accessibility -->
+                <button onclick="toggleSidebar()" aria-label="Alternar menu lateral" class="text-navy hover:text-blue-700 transition p-1.5 rounded-lg hover:bg-slate-100" title="Recolher / Expandir Menu">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div>
@@ -174,7 +176,8 @@
                         <span class="text-xs font-bold text-slate-700 uppercase"><i class="fa-solid fa-filter text-navy mr-1"></i> Filtros:</span>
                     </div>
                     <div class="flex-1 min-w-[200px]">
-                        <input type="text" id="busca-texto" oninput="renderizarPrioridades()" placeholder="Buscar por palavra-chave, ID, processo ou divisão..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition">
+                        <!-- Debounce applied here via 'buscarComDebounce' instead of immediate trigger -->
+                        <input type="text" id="busca-texto" oninput="buscarComDebounce()" placeholder="Buscar por palavra-chave, ID, processo ou divisão..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition">
                     </div>
                     <div class="min-w-[200px]">
                         <select id="filtro-secretaria" onchange="renderizarPrioridades()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
@@ -251,12 +254,14 @@
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-100 text-slate-800 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th class="p-4 w-[50%] bg-amber-50/60"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2"></i>Riscos e Impactos</th>
-                                    <th class="p-4 w-[50%] bg-emerald-50/60"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Resultado Esperado</th>
+                                    <th class="p-4 w-[20%]"><i class="fa-solid fa-list-check text-navy mr-2"></i>Processo</th>
+                                    <th class="p-4 w-[15%]"><i class="fa-solid fa-building-columns text-navy mr-2"></i>Secretaria</th>
+                                    <th class="p-4 w-[32%] bg-amber-50/60"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2"></i>Riscos e Impactos</th>
+                                    <th class="p-4 w-[33%] bg-emerald-50/60"><i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i>Resultado Esperado</th>
                                 </tr>
                             </thead>
                             <tbody class="text-slate-800 divide-y divide-slate-200" id="tbody-diagnostico">
-                                <tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
+                                <tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Carregando diagnósticos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -286,16 +291,32 @@
         let alteracoesPendentes = {};
         let chartSecretarias = null;
         let chartCiclos = null;
+        let debounceTimer; // Para otimizar a pesquisa
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
         }
 
-        function mostrarToast(mensagem) {
+        function mostrarToast(mensagem, erro = false) {
             const toast = document.getElementById('toast');
+            const icone = toast.querySelector('i');
+            const iconContainer = toast.querySelector('.inline-flex');
+            
+            if (erro) {
+                toast.classList.replace('border-emerald-500', 'border-red-500');
+                iconContainer.classList.replace('bg-emerald-100', 'bg-red-100');
+                iconContainer.classList.replace('text-emerald-500', 'text-red-500');
+                icone.classList.replace('fa-check', 'fa-triangle-exclamation');
+            } else {
+                toast.classList.replace('border-red-500', 'border-emerald-500');
+                iconContainer.classList.replace('bg-red-100', 'bg-emerald-100');
+                iconContainer.classList.replace('text-red-500', 'text-emerald-500');
+                icone.classList.replace('fa-triangle-exclamation', 'fa-check');
+            }
+
             if (mensagem) document.getElementById('toast-message').innerText = mensagem;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3500);
+            setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
         function showSection(sectionId, element) {
@@ -320,7 +341,16 @@
             try {
                 const response = await fetch(API_URL, { redirect: "follow" });
                 if (!response.ok) throw new Error("Erro HTTP: " + response.status);
-                const result = await response.json();
+                
+                const responseText = await response.text();
+                let result;
+                try {
+                    // Impede o "SyntaxError: Unexpected token '<'" se o Google retornar HTML em vez de JSON
+                    result = JSON.parse(responseText); 
+                } catch (jsonErro) {
+                    console.error("A resposta não é um JSON válido. É possível que o Apps Script exija autenticação ou esteja incorreto.", responseText.substring(0, 150));
+                    throw new Error("API retornou formato inválido (HTML). Verifique permissões do Google Apps Script.");
+                }
                 
                 if (result.prioridades) DADOS_SISTEMA.prioridades = result.prioridades;
                 if (result.diagnostico) DADOS_SISTEMA.diagnostico = result.diagnostico;
@@ -335,7 +365,7 @@
                 mostrarToast("Dados sincronizados com sucesso!");
 
             } catch (error) {
-                mostrarToast("Erro ao conectar com a planilha. Verifique o link e permissões.");
+                mostrarToast(error.message, true);
             } finally {
                 if (syncIcon) syncIcon.classList.remove('fa-spin');
             }
@@ -352,8 +382,8 @@
             const secretarias = [...new Set(DADOS_SISTEMA.prioridades.map(p => (p.Secretaria || p.secretaria || '').toString().trim()).filter(Boolean))].sort();
             const processos = [...new Set(DADOS_SISTEMA.prioridades.map(p => (p.Processo || p.processo || '').toString().trim()).filter(Boolean))].sort();
 
-            selectSec.innerHTML = '<option value="">Todas as Secretarias</option>' + secretarias.map(s => `<option value="${s}" ${s === secAtual ? 'selected' : ''}>${s}</option>`).join('');
-            selectProc.innerHTML = '<option value="">Todos os Processos</option>' + processos.map(p => `<option value="${p}" ${p === procAtual ? 'selected' : ''}>${p}</option>`).join('');
+            selectSec.innerHTML = '<option value="">Todas as Secretarias</option>' + secretarias.map(s => `<option value="${escapeHTML(s)}" ${s === secAtual ? 'selected' : ''}>${escapeHTML(s)}</option>`).join('');
+            selectProc.innerHTML = '<option value="">Todos os Processos</option>' + processos.map(p => `<option value="${escapeHTML(p)}" ${p === procAtual ? 'selected' : ''}>${escapeHTML(p)}</option>`).join('');
         }
 
         function limparFiltros() {
@@ -366,6 +396,14 @@
             renderizarPrioridades();
         }
 
+        // Função para evitar travamento da interface em bases grandes (Debounce)
+        function buscarComDebounce() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                renderizarPrioridades();
+            }, 300); // Aguarda 300ms de inatividade antes de filtrar
+        }
+
         function atualizarKPIs() {
             const total = DADOS_SISTEMA.prioridades.length;
             const secretarias = new Set(DADOS_SISTEMA.prioridades.map(p => (p.Secretaria || p.secretaria || '').toString().trim()).filter(Boolean)).size;
@@ -374,13 +412,15 @@
             let somaIndices = 0;
             let countIndices = 0;
             DADOS_SISTEMA.prioridades.forEach(p => {
-                const val = parseFloat(p["Índice de Priorização"] || p["Indice de Priorizacao"] || 0);
+                let rawVal = p["Índice de Priorização"] || p["Indice de Priorizacao"] || p["Índice"] || p.indice || 0;
+                const val = parseFloat(String(rawVal).replace(',', '.'));
                 if (!isNaN(val) && val > 0) {
                     somaIndices += val;
                     countIndices++;
                 }
             });
-            const media = countIndices > 0 ? (somaIndices / countIndices).toFixed(1) : '0.0';
+            // Multiplica a média por 100 e formata com 2 casas decimais e %
+            const media = countIndices > 0 ? ((somaIndices / countIndices) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
 
             const elTotal = document.getElementById('kpi-total');
             const elSec = document.getElementById('kpi-secretarias');
@@ -424,9 +464,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: { beginAtZero: true, ticks: { precision: 0 } },
                         x: { ticks: { font: { size: 10 } } }
@@ -436,7 +474,7 @@
 
             const ciclosCount = {};
             DADOS_SISTEMA.prioridades.forEach(p => {
-                const ciclo = (p["Ciclo de Implantação"] || p["Ciclo de Implantacao"] || 'Não definido').toString().trim();
+                const ciclo = (p["Ciclo de Implantação"] || p["Ciclo de Implantacao"] || p.Ciclo || p.ciclo || 'Não definido').toString().trim();
                 if (ciclo) {
                     ciclosCount[ciclo] = (ciclosCount[ciclo] || 0) + 1;
                 }
@@ -463,6 +501,17 @@
                     }
                 }
             });
+        }
+
+        // Função crucial para previnir XSS se algum usuário inserir tags HTML maliciosas na planilha
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return str.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         function renderizarPrioridades() {
@@ -493,6 +542,16 @@
                 return matchSec && matchProc && matchBusca;
             });
 
+            lista.sort((a, b) => {
+                // Tenta buscar o valor numérico da ordem.
+                // Caso a coluna esteja vazia, atribui um número alto (999999) para que vá para o final da lista.
+                const ordemA = parseInt(a.Ordem || a.ordem) || 999999;
+                const ordemB = parseInt(b.Ordem || b.ordem) || 999999;
+
+                // Ordena de forma crescente: 1, 2, 3...
+                return ordemA - ordemB;
+            });
+
             if (!lista.length) {
                 tbody.innerHTML = '<tr><td colspan="16" class="p-8 text-center text-slate-400 italic">Nenhuma prioridade encontrada com os filtros selecionados.</td></tr>';
                 return;
@@ -505,20 +564,25 @@
             ];
 
             tbody.innerHTML = lista.map((item, index) => {
-                const id = item.ID || item.id || '';
-                const ordem = item.Ordem || item.ordem || (index + 1);
-                const prioridade = item.Prioridade || item.prioridade || '-';
-                const processo = item.Processo || item.processo || '-';
-                const secretaria = item.Secretaria || item.secretaria || '-';
-                const divisao = item.Divisão || item.Divisao || item.divisao || '-';
-                const complexidade = item.Complexidade || item.complexidade || '-';
-                const indice = item["Índice de Priorização"] || item["Indice de Priorizacao"] || '-';
-                const ciclo = item["Ciclo de Implantação"] || item["Ciclo de Implantacao"] || '-';
+                const id = escapeHTML(item.ID || item.id || '');
+                const ordem = escapeHTML(item.Ordem || item.ordem || (index + 1));
+                const prioridade = escapeHTML(item.Prioridade || item.prioridade || '-');
+                const processo = escapeHTML(item.Processo || item.processo || '-');
+                const secretaria = escapeHTML(item.Secretaria || item.secretaria || '-');
+                const divisao = escapeHTML(item.Divisão || item.Divisao || item.divisao || '-');
+                const complexidade = escapeHTML(item.Complexidade || item.complexidade || '-');
+                
+                const indiceRaw = item["Índice de Priorização"] || item["Indice de Priorizacao"] || item["Índice"] || item.indice;
+                let indiceNum = parseFloat(String(indiceRaw).replace(',', '.'));
+                // Multiplica por 100 para transformar decimal em porcentagem visual, com 2 casas decimais
+                const indice = !isNaN(indiceNum) ? (indiceNum * 100).toFixed(2).replace('.', ',') + '%' : '-';
+
+                const ciclo = escapeHTML(item["Ciclo de Implantação"] || item["Ciclo de Implantacao"] || item.Ciclo || item.ciclo || '-');
 
                 let selectsHtml = '';
                 camposCriterios.forEach(campo => {
                     const chaveReal = Object.keys(item).find(k => k.toLowerCase().trim() === campo.toLowerCase().trim()) || campo;
-                    const valorAtual = item[chaveReal] !== undefined ? item[chaveReal] : '';
+                    const valorAtual = item[chaveReal] !== undefined ? escapeHTML(item[chaveReal]) : '';
                     
                     let sel = `<select onchange="registrarAlteracao('${id}', '${campo}', this.value)" class="criterio-select w-14 bg-blue-50/70 border border-blue-300 text-slate-800 text-xs font-bold rounded-lg p-1.5 text-center focus:ring-2 focus:ring-gold focus:border-gold outline-none transition cursor-pointer">
                         <option value="" ${!valorAtual ? 'selected' : ''} disabled>-</option>`;
@@ -564,15 +628,20 @@
             if (!texto || texto === '-') return '-';
             const t = texto.toString().toLowerCase().trim();
             let bg = 'bg-slate-100 text-slate-700 border-slate-200';
-            if (t.includes('1') || t.includes('1°') || t.includes('1º') || t.includes('primeiro')) {
-                bg = 'bg-emerald-100 text-emerald-800 border-emerald-300';
-            } else if (t.includes('2') || t.includes('2°') || t.includes('2º') || t.includes('segundo')) {
-                bg = 'bg-blue-100 text-blue-800 border-blue-300';
-            } else if (t.includes('3') || t.includes('3°') || t.includes('3º') || t.includes('terceiro')) {
-                bg = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+            
+            // Verifica se o texto COMEÇA exatamente com 1, 2 ou 3 para evitar pegar números soltos no meio do texto
+            if (t.startsWith('1') || t.startsWith('primeiro')) {
+                bg = 'bg-emerald-100 text-emerald-800 border-emerald-300'; // Verde
+            } else if (t.startsWith('2') || t.startsWith('segundo')) {
+                bg = 'bg-blue-100 text-blue-800 border-blue-300'; // Azul
+            } else if (t.startsWith('3') || t.startsWith('terceiro')) {
+                bg = 'bg-yellow-100 text-yellow-800 border-yellow-300'; // Amarelo
             } else if (t.includes('pausado') || t.includes('suspenso')) {
                 bg = 'bg-red-100 text-red-800 border-red-300';
+            } else if (t.includes('carteira') || t.includes('estruturante')) {
+                bg = 'bg-purple-100 text-purple-800 border-purple-300';
             }
+            
             return `<span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${bg} inline-block">${texto}</span>`;
         }
 
@@ -582,18 +651,24 @@
 
             const lista = DADOS_SISTEMA.diagnostico || [];
             if (!lista.length) {
-                tbody.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico operacional cadastrado.</td></tr>';
+                // Atualizado para colspan=4 devido às novas colunas
+                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Nenhum diagnóstico operacional cadastrado.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = lista.map(d => {
-                const riscos = d["Riscos e Impactos"] || d["riscos e impactos"] || d["Diagnóstico Atual"] || d["diagnostico atual"] || '-';
-                const resultado = d["Resultado Esperado"] || d["resultado esperado"] || d["Sugestão de Melhoria"] || d["sugestao de melhoria"] || '-';
+                // Adicionando a extração dos novos campos
+                const processo = escapeHTML(d["Processo"] || d["processo"] || '-');
+                const secretaria = escapeHTML(d["Secretaria"] || d["secretaria"] || '-');
+                const riscos = escapeHTML(d["Riscos e Impactos"] || d["riscos e impactos"] || d["Diagnóstico Atual"] || d["diagnostico atual"] || '-');
+                const resultado = escapeHTML(d["Resultado Esperado"] || d["resultado esperado"] || d["Sugestão de Melhoria"] || d["sugestao de melhoria"] || '-');
 
                 return `
                     <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
-                        <td class="p-4 text-slate-700 text-xs leading-relaxed bg-amber-50/40">${riscos}</td>
-                        <td class="p-4 text-slate-700 text-xs leading-relaxed bg-emerald-50/40">${resultado}</td>
+                        <td class="p-4 text-slate-700 font-semibold align-top text-xs">${processo}</td>
+                        <td class="p-4 font-bold text-slate-800 align-top text-xs">${secretaria}</td>
+                        <td class="p-4 text-slate-700 text-xs leading-relaxed bg-amber-50/40 align-top">${riscos}</td>
+                        <td class="p-4 text-slate-700 text-xs leading-relaxed bg-emerald-50/40 align-top">${resultado}</td>
                     </tr>
                 `;
             }).join('');
@@ -632,7 +707,7 @@
                 mostrarToast("Alterações salvas com sucesso!");
                 carregarDadosPlanilha();
             } catch (err) {
-                mostrarToast("Erro ao salvar alterações. Tente novamente.");
+                mostrarToast("Erro ao salvar alterações. Tente novamente.", true);
             }
         }
 
